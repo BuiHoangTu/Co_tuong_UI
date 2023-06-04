@@ -65,7 +65,8 @@
                 }
             }
 
-            console.dir(validMoves);
+            allMoves(b).x = validMoves;
+            console.log(allMoves(b).x);
             validMoves = [];
           }
           if (_side == "red") {
@@ -103,7 +104,6 @@
                 }
             }
 
-            console.dir(validMoves);
             validMoves = [];
           }
       }
@@ -133,9 +133,9 @@
             game.move(move);
             board.position(game.fen());
 
-            // if (_turn == "b") {
-            //   allValidMove("black");
-            // }
+            if (_turn == "b") {
+              allValidMove("black");
+            }
             // if (_turn == "r") {
             //   allValidMove("red");
             // }
