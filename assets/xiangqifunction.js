@@ -1,4 +1,4 @@
-    (() => {
+    ;(() => {
 
       const game = new Xiangqi();
 
@@ -65,8 +65,6 @@
                 }
             }
 
-            allMoves(b).x = validMoves;
-            console.log(allMoves(b).x);
             validMoves = [];
           }
           if (_side == "red") {
@@ -133,9 +131,9 @@
             game.move(move);
             board.position(game.fen());
 
-            if (_turn == "b") {
-              allValidMove("black");
-            }
+            // if (_turn == "b") {
+            //     allValidMove("black");
+            // }
             // if (_turn == "r") {
             //   allValidMove("red");
             // }
