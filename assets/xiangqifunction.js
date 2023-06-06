@@ -579,11 +579,11 @@
   const game = new Xiangqi();
 
   const config = {
-    boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard.svg",
+    boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
     pieceTheme: "./docs/img/xiangqipieces/wikimedia/{piece}.svg",
     orientation: "white",
     position: game.fen(),
-    showNotation: false,
+    // showNotation: false,
   };
 
   let board = Xiangqiboard("#myBoard1", config);

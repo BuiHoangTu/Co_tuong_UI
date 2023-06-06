@@ -11,6 +11,8 @@
 
 .selecting {
   background: url('./selected.png');
+  background-size: 55px 55px;
+  background-repeat: no-repeat;
 }
 
 .clearfix-5f3b5 {
