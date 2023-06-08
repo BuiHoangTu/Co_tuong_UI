@@ -204,6 +204,10 @@
       }
       return POSITION_VALUES.Xe[x][y];
     }
+
+    toString() {
+      return this.scale > 0 ? "C" : "c";
+    }
   }
 
   class Ma extends Piece {
@@ -225,6 +229,10 @@
       }
       return POSITION_VALUES.Ma[x][y];
     }
+
+    toString() {
+      return this.scale > 0 ? "M" : "m";
+    }
   }
 
   class Vua extends Piece {
@@ -238,6 +246,10 @@
       }
       this.text = properties.text;
       this.imgStr = properties.imgStr;
+    }
+
+    toString() {
+      return this.scale > 0 ? "J" : "j";
     }
   }
 
@@ -260,6 +272,10 @@
       }
       return POSITION_VALUES.Si[x][y];
     }
+
+    toString() {
+      return this.scale > 0 ? "S" : "s";
+    }
   }
 
   class Tuong extends Piece {
@@ -280,6 +296,10 @@
         y = y * this.scale - 1;
       }
       return POSITION_VALUES.Tuong[x][y];
+    }
+
+    toString() {
+      return this.scale > 0 ? "X" : "x";
     }
   }
 
@@ -302,6 +322,10 @@
       }
       return POSITION_VALUES.Phao[x][y];
     }
+
+    toString() {
+      return this.scale > 0 ? "P" : "p";
+    }
   }
 
   class Tot extends Piece {
@@ -322,6 +346,10 @@
         y = y * this.scale - 1;
       }
       return POSITION_VALUES.Tot[x][y];
+    }
+
+    toString() {
+      return this.scale > 0 ? "Z" : "z";
     }
   }
 
@@ -476,6 +504,7 @@
     opponentMakeMove(move) {
       this.board = this.board.movePiece(move).board;
       this.board.makeTree(this.board.turn + this.searchDepth);
+
       let botMove;
       if (this.botIsRed) botMove = this._maxValue(this.board).move;
       else botMove = this._minValue(this.board).move;
@@ -504,6 +533,8 @@
       }
     }
     _minValue(nextBoard) {
+      console.log(nextBoard.turn, this.board.turn);
+
       if (nextBoard.turn - this.board.turn >= this.searchDepth) {
         if (nextBoard.prevMove)
           return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
@@ -568,7 +599,6 @@
   function allMoves() {
     let x = allValidMove("black");
     // let x = allValidMove("red");
-    console.log(x);
     return x;
   }
 
@@ -651,9 +681,24 @@
               var moves = game.moves({ square });
 
               for (let k = 0; k < moves.length; k++) {
-                viTri1 = moves[k][0] + moves[k][1];
-                viTri2 = moves[k][2] + moves[k][3];
-                validMoves.push({ vt1: viTri1, vt2: viTri2 });
+                let tmp = "";
+
+                for (let l = 0; l < 4; l++) {
+                  if (moves[k][l] == "a") tmp += "0";
+                  else if (moves[k][l] == "b") tmp += "1";
+                  else if (moves[k][l] == "c") tmp += "2";
+                  else if (moves[k][l] == "d") tmp += "3";
+                  else if (moves[k][l] == "e") tmp += "4";
+                  else if (moves[k][l] == "f") tmp += "5";
+                  else if (moves[k][l] == "g") tmp += "6";
+                  else if (moves[k][l] == "h") tmp += "7";
+                  else if (moves[k][l] == "i") tmp += "8";
+                  else tmp += moves[k][l];
+                }
+
+                viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
+                viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
+                validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
               }
             }
           }
@@ -664,7 +709,6 @@
         window.alert("Game over. You wins");
         window.alert("Please, restart the game !");
       }
-      validMoves = [];
     }
     if (_side == "red") {
       for (let i = 0; i <= 9; i++) {
@@ -712,9 +756,24 @@
               var moves = game.moves({ square });
 
               for (let k = 0; k < moves.length; k++) {
-                viTri1 = moves[k][0] + moves[k][1];
-                viTri2 = moves[k][2] + moves[k][3];
-                validMoves.push({ vt1: viTri1, vt2: viTri2 });
+                let tmp = "";
+
+                for (let l = 0; l < 4; l++) {
+                  if (moves[k][l] == "a") tmp += "0";
+                  else if (moves[k][l] == "b") tmp += "1";
+                  else if (moves[k][l] == "c") tmp += "2";
+                  else if (moves[k][l] == "d") tmp += "3";
+                  else if (moves[k][l] == "e") tmp += "4";
+                  else if (moves[k][l] == "f") tmp += "5";
+                  else if (moves[k][l] == "g") tmp += "6";
+                  else if (moves[k][l] == "h") tmp += "7";
+                  else if (moves[k][l] == "i") tmp += "8";
+                  else tmp += moves[k][l];
+                }
+
+                viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
+                viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
+                validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
               }
             }
           }
@@ -725,8 +784,9 @@
         window.alert("Game over. You loses");
         window.alert("Please, restart the game !");
       }
-      validMoves = [];
     }
+
+    return validMoves;
   }
 
   $(".square-2b8ce").click(function () {
@@ -763,30 +823,68 @@
       board.position(game.fen());
 
       if (_turn == "r") {
+
         allValidMove("black");
-      }
-      if (_turn == "b") {
+
+        let bot = new Bot();
+
+        let oppMove = "";
+
+        // console.log(move);
+
+        for (let i = 0; i < 4; i++) {
+          if (move[i] == "a") oppMove += "0";
+          else if (move[i] == "b") oppMove += "1";
+          else if (move[i] == "c") oppMove += "2";
+          else if (move[i] == "d") oppMove += "3";
+          else if (move[i] == "e") oppMove += "4";
+          else if (move[i] == "f") oppMove += "5";
+          else if (move[i] == "g") oppMove += "6";
+          else if (move[i] == "h") oppMove += "7";
+          else if (move[i] == "i") oppMove += "8";
+          else oppMove += move[i];
+        }
+
+        // console.log(oppMove);
+
+        let _oopMove = {
+          oldPosition: {
+            x: Number(oppMove[0]),
+            y: Number(oppMove[1]),
+          },
+          newPosition: {
+            x: Number(oppMove[2]),
+            y: Number(oppMove[3]),
+          },
+        };
+
+        console.log(bot.opponentMakeMove(_oopMove));
+      } else {
         allValidMove("red");
       }
+
+      // if (_turn == "r") {
+      //   allValidMove("black");
+      // }
+      // if (_turn == "b") {
+      //   allValidMove("red");
+      // }
     }
   });
 
   $(".undo_btn").click(function () {
-    _turn--;
     game.undo();
     board.position(game.fen());
     _el_selecting ? _el_selecting.classList.remove("selecting") : "";
   });
 
   $(".redo_btn").click(function () {
-    _turn++;
     game.redo();
     board.position(game.fen());
     _el_selecting ? _el_selecting.classList.remove("selecting") : "";
   });
 
   $(".reset_btn").click(function () {
-    _turn++;
     game.reset();
     board.position(game.fen());
     _el_selecting ? _el_selecting.classList.remove("selecting") : "";
