@@ -63,29 +63,27 @@
   ];
 
   POSITION_VALUES.Tuong = [
-    [0, 0, 0, 0, 0, 0, 0, 18, 0, 0],
+    [0, 0, 18, 0, 0, 0, 0, 18, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [20, 0, 0, 0, 20, 20, 0, 0, 0, 20],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 23, 0, 0, 0, 20, 23, 0, 0],
+    [0, 0, 23, 0, 0, 0, 0, 23, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [20, 0, 0, 0, 20, 20, 0, 0, 0, 20],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 18, 0, 0],
-    [0, 0, 20, 0, 0, 0, 20, 0, 0, 0],
+    [0, 0, 18, 0, 0, 0, 0, 18, 0, 0]
   ];
 
   POSITION_VALUES.Si = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [20, 0, 20, 0, 0, 0, 20, 0, 20],
-    [0, 23, 0, 0, 0, 0, 0, 23, 0],
-    [20, 0, 20, 0, 0, 0, 20, 0, 20],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [20, 0, 20, 0, 0, 0, 20, 0, 20],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [20, 0, 20, 0, 0, 0, 0, 20, 0, 20],
+    [0, 23, 0, 0, 0, 0, 0, 0, 23, 0],
+    [20, 0, 20, 0, 0, 0, 0, 20, 0, 20],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
   POSITION_VALUES.Vua = [
@@ -384,6 +382,9 @@
       for (var i = 0; i < refinedStartPositions.length; i++) {
         let colPieces = [];
         this.piecesPositionOnBoard.push(colPieces);
+
+        let count = 0;
+
         for (var j = 0; j < refinedStartPositions[i].length; j++) {
           const pieceChar =
             (_a = refinedStartPositions[i][j]) === null || _a === void 0
@@ -504,7 +505,6 @@
     opponentMakeMove(move) {
       this.board = this.board.movePiece(move).board;
       this.board.makeTree(this.board.turn + this.searchDepth);
-
       let botMove;
       if (this.botIsRed) botMove = this._maxValue(this.board).move;
       else botMove = this._minValue(this.board).move;
@@ -533,8 +533,6 @@
       }
     }
     _minValue(nextBoard) {
-      console.log(nextBoard.turn, this.board.turn);
-
       if (nextBoard.turn - this.board.turn >= this.searchDepth) {
         if (nextBoard.prevMove)
           return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
@@ -823,10 +821,9 @@
       board.position(game.fen());
 
       if (_turn == "r") {
-
         allValidMove("black");
 
-        let bot = new Bot();
+        let bot = new Bot(5, false, null);
 
         let oppMove = "";
 
