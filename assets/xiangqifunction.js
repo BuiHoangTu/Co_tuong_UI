@@ -440,11 +440,11 @@
             default:
               throw new Error(
                 "This piece `" +
-                  pieceChar +
-                  "` at `" +
-                  i +
-                  j +
-                  "` is not available"
+                pieceChar +
+                "` at `" +
+                i +
+                j +
+                "` is not available"
               );
           }
           colPieces.push(thisPiece);
@@ -495,6 +495,17 @@
   // class_Bot
   // ----------------------------------------------------------------
 
+  // Await for async function 
+  var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+  };
+
   // Class Bot for calculate move in depth
   class Bot {
     constructor(searchDepth, botIsRed, startPositions) {
@@ -502,13 +513,25 @@
       this.searchDepth = searchDepth;
       this.botIsRed = botIsRed;
     }
+    botFirstMove() {
+      let firstMove = {
+        oldPosition: { x: 4, y: 3 },
+        newPosition: { x: 4, y: 4 }
+      };
+      this.board._movePiece(firstMove);
+      return firstMove;
+    }
     opponentMakeMove(move) {
-      this.board = this.board.movePiece(move).board;
-      this.board.makeTree(this.board.turn + this.searchDepth);
-      let botMove;
-      if (this.botIsRed) botMove = this._maxValue(this.board).move;
-      else botMove = this._minValue(this.board).move;
-      return botMove;
+      return __awaiter(this, void 0, void 0, function* () {
+        this.board = this.board.movePiece(move).board;
+        yield this.board.buildBoardTree(this.board.turn + this.searchDepth);
+        let botMove;
+        if (this.botIsRed)
+          botMove = this._maxValue(this.board).move;
+        else
+          botMove = this._minValue(this.board).move;
+        return botMove;
+      });
     }
     _maxValue(nextBoard) {
       if (nextBoard.turn - this.board.turn >= this.searchDepth) {
@@ -539,6 +562,7 @@
         else throw new Error("This board `" + nextBoard + "` is broken");
       } else {
         let nextnextBoards = nextBoard.nextBoards;
+        console.log(nextnextBoards);
         let point = 100000;
         let move;
         if (nextnextBoards.length <= 0)
@@ -564,12 +588,20 @@
       if (prevMove) this.prevMove = prevMove;
       if (prevCaptured) this.prevCaptured = prevCaptured;
     }
-    makeTree(untilTurnX) {
-      if (this.turn >= untilTurnX) return;
-      let moves = allMoves(this);
-      moves.forEach((move) => {
-        let { captured: c, board: b } = this.movePiece(move);
-        this.nextBoards.push(b);
+    buildBoardTree(untilTurnX) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (this.turn >= untilTurnX)
+          return;
+        if (!this.nextBoards) {
+          let moves = allMoves();
+          moves.forEach((move) => {
+            let b = this.movePiece(move).board;
+            this.nextBoards.push(b);
+          });
+        }
+        this.nextBoards.forEach((nBoard) => {
+          nBoard.buildBoardTree(untilTurnX);
+        });
       });
     }
     movePiece(move) {
@@ -586,6 +618,7 @@
         this.prevMove,
         this.prevCaptured
       );
+      b.turn = this.turn + 1;
       return b._movePiece(move);
     }
   }
@@ -789,7 +822,7 @@
 
   $(".square-2b8ce").click(function () {
     _turn = game.turn();
-    console.log(_turn);
+    // console.log(_turn);
     // console.log("game.fen = " + game.fen());
 
     let square = $(this).data("square");
