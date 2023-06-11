@@ -120,6 +120,7 @@ class BoardBot extends Board {
             }
         }
         let b = new BoardBot(this.piecesPositionOnBoard, this.prevMove, this.prevCaptured);
+        b.turn = this.turn + 1;
         return b._movePiece(move);
     }
 }
