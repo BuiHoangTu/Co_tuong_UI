@@ -18,15 +18,28 @@ export class Bot {
 
     }
 
-    opponentMakeMove(move: Move): Move {
+    /**
+     * Use this if `bot is red` to make the first move 
+     * @returns bot's move
+     */
+    botFirstMove() {
+        let firstMove: Move = {
+            oldPosition: { x: 4, y: 3},
+            newPosition: {x : 4, y: 4}
+        };
+        this.board._movePiece(firstMove);
+        return firstMove;
+    }
+
+    async opponentMakeMove(move: Move): Promise<Move> {
         this.board = this.board.movePiece(move).board;
-        this.board.makeTree(this.board.turn + this.searchDepth);
+        await this.board.buildBoardTree(this.board.turn + this.searchDepth);
 
         let botMove: Move;
         if (this.botIsRed) botMove = this._maxValue(this.board).move;
         else botMove = this._minValue(this.board).move;
-        
-        
+
+
 
         return botMove
     }
@@ -89,17 +102,22 @@ class BoardBot extends Board {
         if (prevCaptured) this.prevCaptured = prevCaptured
     }
 
-    makeTree(untilTurnX: number): void {
+    async buildBoardTree(untilTurnX: number): Promise<void> {
         if (this.turn >= untilTurnX) return;
-        let moves = allMoves(this);
-        
-        moves.forEach((move) => {
-            let { captured: c, board: b } = this.movePiece(move);
 
-            this.nextBoards.push(b);
+        if (!this.nextBoards) {
+            let moves = allMoves(this);
 
+            moves.forEach((move) => {
+                let b = this.movePiece(move).board;
 
-        });
+                this.nextBoards.push(b);
+            });
+        }
+
+        this.nextBoards.forEach((nBoard) => {
+            nBoard.buildBoardTree(untilTurnX);
+        })
 
     }
 
