@@ -1,4 +1,18 @@
 (() => {
+  // Khởi tạo
+  const game = new Xiangqi();
+
+  const config = {
+    boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
+    pieceTheme: "./docs/img/xiangqipieces/wikimedia/{piece}.svg",
+    orientation: "white",
+    position: game.fen(),
+    // showNotation: false,
+  };
+
+  let board = Xiangqiboard("#myBoard1", config);
+  let board1 = Xiangqiboard("#myBoard2", config);
+
   // ----------------------------------------------------------------
   // class_Piece
   // ----------------------------------------------------------------
@@ -463,6 +477,7 @@
       return this._movePiece(move);
     }
     _movePiece(move) {
+      // js
       let { x, y } = move.oldPosition;
       let thisPiece = this.piecesPositionOnBoard[x][y];
       if (!thisPiece)
@@ -513,6 +528,9 @@
       this.searchDepth = searchDepth;
       this.botIsRed = botIsRed;
     }
+
+    // --------------------------------------------
+
     botFirstMove() {
       let firstMove = {
         oldPosition: { x: 4, y: 3 },
@@ -521,7 +539,10 @@
       this.board._movePiece(firstMove);
       return firstMove;
     }
-    opponentMakeMove(move) {
+
+    // TODO: Chưa thấy dùng -----------------------
+
+    async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
         this.board = this.board.movePiece(move).board;
         yield this.board.buildBoardTree(this.board.turn + this.searchDepth);
@@ -562,7 +583,6 @@
         else throw new Error("This board `" + nextBoard + "` is broken");
       } else {
         let nextnextBoards = nextBoard.nextBoards;
-        console.log(nextnextBoards);
         let point = 100000;
         let move;
         if (nextnextBoards.length <= 0)
@@ -590,17 +610,33 @@
     }
     buildBoardTree(untilTurnX) {
       return __awaiter(this, void 0, void 0, function* () {
-        if (this.turn >= untilTurnX)
-          return;
-        if (!this.nextBoards) {
-          let moves = allMoves();
+        let _moves = [];
+
+        if (this.turn >= untilTurnX) return;
+
+        if (this.nextBoards.length == 0) {
+          let moves = allValidMove();
           moves.forEach((move) => {
+            _moves.push(parseMove(move));
             let b = this.movePiece(move).board;
             this.nextBoards.push(b);
           });
         }
+
+        console.log(_moves);
+
+        let i = 0;
+
         this.nextBoards.forEach((nBoard) => {
+
+          game.move(_moves[i]);
+          turnBlackturn();
+
+          // js
           nBoard.buildBoardTree(untilTurnX);
+
+          game.undo();
+          i++;
         });
       });
     }
@@ -618,36 +654,14 @@
         this.prevMove,
         this.prevCaptured
       );
-      b.turn = this.turn + 1;
+      b.turn++;
       return b._movePiece(move);
     }
   }
 
   // ----------------------------------------------------------------
-  // Common.js
-  // ----------------------------------------------------------------
-
-  function allMoves() {
-    let x = allValidMove("black");
-    // let x = allValidMove("red");
-    return x;
-  }
-
-  // ----------------------------------------------------------------
   // Main function for game
   // ----------------------------------------------------------------
-
-  const game = new Xiangqi();
-
-  const config = {
-    boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
-    pieceTheme: "./docs/img/xiangqipieces/wikimedia/{piece}.svg",
-    orientation: "white",
-    position: game.fen(),
-    // showNotation: false,
-  };
-
-  let board = Xiangqiboard("#myBoard1", config);
 
   let _selecting;
   let _moves;
@@ -662,168 +676,80 @@
     }
   }
 
+  function parseMove(move) {
+    let _move = "";
+    switch (move.oldPosition.x) {
+      case 0: _move += 'a'; break;
+      case 1: _move += 'b'; break;
+      case 2: _move += 'c'; break;
+      case 3: _move += 'd'; break;
+      case 4: _move += 'e'; break;
+      case 5: _move += 'f'; break;
+      case 6: _move += 'g'; break;
+      case 7: _move += 'h'; break;
+      case 8: _move += 'i'; break;
+    }
+    _move += move.oldPosition.y
+    switch (move.newPosition.x) {
+      case 0: _move += 'a'; break;
+      case 1: _move += 'b'; break;
+      case 2: _move += 'c'; break;
+      case 3: _move += 'd'; break;
+      case 4: _move += 'e'; break;
+      case 5: _move += 'f'; break;
+      case 6: _move += 'g'; break;
+      case 7: _move += 'h'; break;
+      case 8: _move += 'i'; break;
+    }
+    _move += move.newPosition.y
+
+    return _move;
+  }
+
+  function turnBlackturn() {
+    let fen = game.fen();
+    let x;
+
+    for (let i = 0; i < fen.length; i++) {
+      if (fen[i] == 'r' && fen[i - 1] == ' ') x = i;
+    }
+
+    fen = fen.slice(0, x) + 'b' + fen.slice(x + 1, fen.length);
+
+    game.load(fen);
+    board.position(game.fen());
+  }
+
   function allValidMove(_side) {
     let validMoves = [];
 
-    if (_side == "black") {
-      for (let i = 0; i <= 9; i++) {
-        for (let j = 0; j < 9; j++) {
-          let c = ".square-";
+    var moves = game.moves();
 
-          switch (j) {
-            case 0:
-              c += "a";
-              break;
-            case 1:
-              c += "b";
-              break;
-            case 2:
-              c += "c";
-              break;
-            case 3:
-              c += "d";
-              break;
-            case 4:
-              c += "e";
-              break;
-            case 5:
-              c += "f";
-              break;
-            case 6:
-              c += "g";
-              break;
-            case 7:
-              c += "h";
-              break;
-            case 8:
-              c += "i";
-              break;
-          }
-          c += i;
+    for (let k = 0; k < moves.length; k++) {
+      let tmp = "";
 
-          var piece = document.querySelector(c);
-
-          if (piece.getElementsByTagName("img").length > 0) {
-            let p = piece
-              .getElementsByTagName("img")[0]
-              .getAttribute("data-piece");
-            if (p[0] == "b") {
-              var square = $(piece).data("square");
-              var moves = game.moves({ square });
-
-              for (let k = 0; k < moves.length; k++) {
-                let tmp = "";
-
-                for (let l = 0; l < 4; l++) {
-                  if (moves[k][l] == "a") tmp += "0";
-                  else if (moves[k][l] == "b") tmp += "1";
-                  else if (moves[k][l] == "c") tmp += "2";
-                  else if (moves[k][l] == "d") tmp += "3";
-                  else if (moves[k][l] == "e") tmp += "4";
-                  else if (moves[k][l] == "f") tmp += "5";
-                  else if (moves[k][l] == "g") tmp += "6";
-                  else if (moves[k][l] == "h") tmp += "7";
-                  else if (moves[k][l] == "i") tmp += "8";
-                  else tmp += moves[k][l];
-                }
-
-                viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
-                viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
-                validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
-              }
-            }
-          }
-        }
+      for (let l = 0; l < 4; l++) {
+        if (moves[k][l] == "a") tmp += "0";
+        else if (moves[k][l] == "b") tmp += "1";
+        else if (moves[k][l] == "c") tmp += "2";
+        else if (moves[k][l] == "d") tmp += "3";
+        else if (moves[k][l] == "e") tmp += "4";
+        else if (moves[k][l] == "f") tmp += "5";
+        else if (moves[k][l] == "g") tmp += "6";
+        else if (moves[k][l] == "h") tmp += "7";
+        else if (moves[k][l] == "i") tmp += "8";
+        else tmp += moves[k][l];
       }
 
-      if (validMoves.length == 0) {
-        window.alert("Game over. You wins");
-        window.alert("Please, restart the game !");
-      }
-    }
-    if (_side == "red") {
-      for (let i = 0; i <= 9; i++) {
-        for (let j = 0; j < 9; j++) {
-          let c = ".square-";
-          switch (j) {
-            case 0:
-              c += "a";
-              break;
-            case 1:
-              c += "b";
-              break;
-            case 2:
-              c += "c";
-              break;
-            case 3:
-              c += "d";
-              break;
-            case 4:
-              c += "e";
-              break;
-            case 5:
-              c += "f";
-              break;
-            case 6:
-              c += "g";
-              break;
-            case 7:
-              c += "h";
-              break;
-            case 8:
-              c += "i";
-              break;
-          }
-          c += i;
-
-          var piece = document.querySelector(c);
-
-          if (piece.getElementsByTagName("img").length > 0) {
-            let p = piece
-              .getElementsByTagName("img")[0]
-              .getAttribute("data-piece");
-            if (p[0] == "r") {
-              var square = $(piece).data("square");
-              var moves = game.moves({ square });
-
-              for (let k = 0; k < moves.length; k++) {
-                let tmp = "";
-
-                for (let l = 0; l < 4; l++) {
-                  if (moves[k][l] == "a") tmp += "0";
-                  else if (moves[k][l] == "b") tmp += "1";
-                  else if (moves[k][l] == "c") tmp += "2";
-                  else if (moves[k][l] == "d") tmp += "3";
-                  else if (moves[k][l] == "e") tmp += "4";
-                  else if (moves[k][l] == "f") tmp += "5";
-                  else if (moves[k][l] == "g") tmp += "6";
-                  else if (moves[k][l] == "h") tmp += "7";
-                  else if (moves[k][l] == "i") tmp += "8";
-                  else tmp += moves[k][l];
-                }
-
-                viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
-                viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
-                validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
-              }
-            }
-          }
-        }
-      }
-
-      if (validMoves.length == 0) {
-        window.alert("Game over. You loses");
-        window.alert("Please, restart the game !");
-      }
+      viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
+      viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
+      validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
     }
 
     return validMoves;
   }
 
   $(".square-2b8ce").click(function () {
-    _turn = game.turn();
-    // console.log(_turn);
-    // console.log("game.fen = " + game.fen());
 
     let square = $(this).data("square");
     let moves = game.moves({ square });
@@ -852,11 +778,12 @@
 
       game.move(move);
       board.position(game.fen());
+      board1.position(game.fen());
 
       if (_turn == "r") {
-        allValidMove("black");
+        let oldFen = game.fen();
 
-        let bot = new Bot(5, false, null);
+        let bot = new Bot(1, false, null);
 
         let oppMove = "";
 
@@ -889,16 +816,7 @@
         };
 
         console.log(bot.opponentMakeMove(_oopMove));
-      } else {
-        allValidMove("red");
       }
-
-      // if (_turn == "r") {
-      //   allValidMove("black");
-      // }
-      // if (_turn == "b") {
-      //   allValidMove("red");
-      // }
     }
   });
 
