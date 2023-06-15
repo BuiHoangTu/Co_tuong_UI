@@ -47,7 +47,7 @@ export class Bot {
     _maxValue(nextBoard: BoardBot): { point: number, move: Move } {
         if (nextBoard.turn - this.board.turn >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` is broken");
+            else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
             let nextnextBoards = nextBoard.nextBoards;
             let point = -100_000;
@@ -61,14 +61,14 @@ export class Bot {
                 }
             }
             if (move) return { point: point, move: move }
-            else throw new Error("This board `" + nextBoard + "` is broken");
+            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
         }
     }
 
     _minValue(nextBoard: BoardBot): { point: number, move: Move } {
         if (nextBoard.turn - this.board.turn >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` is broken");
+            else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
             let nextnextBoards = nextBoard.nextBoards;
             let point = 100_000;
@@ -82,7 +82,7 @@ export class Bot {
                 }
             }
             if (move) return { point: point, move: move }
-            else throw new Error("This board `" + nextBoard + "` is broken");
+            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
 
         }
     }
@@ -129,7 +129,7 @@ class BoardBot extends Board {
         }
 
         // if not found this moves-> 
-        let b = new BoardBot(this.piecesPositionOnBoard, this.prevMove, this.prevCaptured);
+        let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured);
         b.turn = this.turn + 1;
         return b._movePiece(move);
 
