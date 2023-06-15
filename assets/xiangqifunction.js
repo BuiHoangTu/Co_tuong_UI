@@ -545,17 +545,21 @@
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
         this.board = this.board.movePiece(move).board;
-        yield this.board.buildBoardTree(this.board.turn + this.searchDepth);
+        yield this.board.buildBoardTree(this.board.turn + this.searchDepth, this.board.turn);
         let botMove;
         if (this.botIsRed)
-          botMove = this._maxValue(this.board).move;
+          botMove = this._maxValue(this.board);
         else
-          botMove = this._minValue(this.board).move;
+          botMove = this._minValue(this.board);
+        // if (this.botIsRed)
+        //   botMove = this._minValue(this.board).move;
+        // else
+        //   botMove = this._maxValue(this.board).move;
         return botMove;
       });
     }
     _maxValue(nextBoard) {
-      if (nextBoard.turn - this.board.turn >= this.searchDepth) {
+      if (nextBoard.turn - this.board.turn >= this.searchDepth - 1) {
         if (nextBoard.prevMove)
           return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
         else throw new Error("This board `" + nextBoard + "` is broken");
@@ -572,12 +576,15 @@
             move = nextnextBoards[i].prevMove;
           }
         }
+
+        console.log(move);
+
         if (move) return { point: point, move: move };
         else throw new Error("This board `" + nextBoard + "` is broken");
       }
     }
     _minValue(nextBoard) {
-      if (nextBoard.turn - this.board.turn >= this.searchDepth) {
+      if (nextBoard.turn - this.board.turn >= this.searchDepth - 1) {
         if (nextBoard.prevMove)
           return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
         else throw new Error("This board `" + nextBoard + "` is broken");
@@ -594,6 +601,9 @@
             move = nextnextBoards[i].prevMove;
           }
         }
+
+        console.log(move);
+
         if (move) return { point: point, move: move };
         else throw new Error("This board `" + nextBoard + "` is broken");
       }
@@ -610,9 +620,11 @@
     }
     buildBoardTree(untilTurnX) {
       return __awaiter(this, void 0, void 0, function* () {
+
+        console.log(this.turn);
         let _moves = [];
 
-        if (this.turn >= untilTurnX) return;
+        if (this.turn >= untilTurnX - 1) return;
 
         if (this.nextBoards.length == 0) {
           let moves = allValidMove();
@@ -623,24 +635,26 @@
           });
         }
 
-        console.log(_moves);
+        // console.log(_moves);
 
         let i = 0;
 
         this.nextBoards.forEach((nBoard) => {
+          let oldFen = game.fen();
 
           game.move(_moves[i]);
-          turnBlackturn();
 
           // js
           nBoard.buildBoardTree(untilTurnX);
 
-          game.undo();
+          game.load(oldFen);
+          board.position(game.fen());
           i++;
         });
       });
     }
     movePiece(move) {
+
       for (let i = 0; i < this.nextBoards.length; i++) {
         if (this.nextBoards[i].prevMove === move) {
           return {
@@ -651,10 +665,10 @@
       }
       let b = new BoardBot(
         this.piecesPositionOnBoard,
-        this.prevMove,
+        move,
         this.prevCaptured
       );
-      b.turn++;
+      b.turn = this.turn + 1;
       return b._movePiece(move);
     }
   }
@@ -720,7 +734,7 @@
     board.position(game.fen());
   }
 
-  function allValidMove(_side) {
+  function allValidMove() {
     let validMoves = [];
 
     var moves = game.moves();
@@ -750,6 +764,7 @@
   }
 
   $(".square-2b8ce").click(function () {
+    _turn = game.turn();
 
     let square = $(this).data("square");
     let moves = game.moves({ square });
@@ -783,7 +798,7 @@
       if (_turn == "r") {
         let oldFen = game.fen();
 
-        let bot = new Bot(1, false, null);
+        let bot = new Bot(3, false, null);
 
         let oppMove = "";
 

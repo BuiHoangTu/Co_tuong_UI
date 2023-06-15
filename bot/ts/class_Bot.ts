@@ -111,7 +111,7 @@ class BoardBot extends Board {
         }
 
         // if not found this moves-> 
-        let b = new BoardBot(this.piecesPositionOnBoard, this.prevMove, this.prevCaptured);
+        let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured);
         return b._movePiece(move);
 
     }
