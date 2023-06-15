@@ -12,7 +12,7 @@ export class Bot {
      *
      */
     constructor(searchDepth: number, botIsRed: boolean, startPositions: ((object | null)[][] | null)) {
-        this.board = new BoardBot(startPositions, null, null);
+        this.board = new BoardBot(startPositions, undefined, undefined, undefined);
         this.searchDepth = searchDepth;
         this.botIsRed = botIsRed;
 
@@ -24,8 +24,8 @@ export class Bot {
      */
     botFirstMove() {
         let firstMove: Move = {
-            oldPosition: { x: 4, y: 3},
-            newPosition: {x : 4, y: 4}
+            oldPosition: { x: 4, y: 3 },
+            newPosition: { x: 4, y: 4 }
         };
         this.board._movePiece(firstMove);
         return firstMove;
@@ -96,8 +96,13 @@ class BoardBot extends Board {
     /**
      *
      */
-    constructor(startPositions: ((object | null)[][] | null), prevMove: null | Move | undefined, prevCaptured: Piece | null | undefined) {
-        super(startPositions);
+    constructor(
+        startPositions: ((object | null)[][] | null), 
+        prevMove: null | Move | undefined, 
+        prevCaptured: Piece | null | undefined, 
+        redToPlay: boolean | string | number | undefined
+    ) {
+        super(startPositions, redToPlay);
         if (prevMove) this.prevMove = prevMove;
         if (prevCaptured) this.prevCaptured = prevCaptured
     }
@@ -129,8 +134,8 @@ class BoardBot extends Board {
         }
 
         // if not found this moves-> 
-        let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured);
-        b.turn = this.turn + 1;
+        let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured, this.redToPlay);
+        b.turn = this.turn; // _movePiece will increase turn  
         return b._movePiece(move);
 
     }

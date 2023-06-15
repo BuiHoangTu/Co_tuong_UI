@@ -6,6 +6,31 @@ export type Move = {
     newPosition: PiecePosition
 }
 
+function parseSideToPlay(isRedPlay: (boolean | string | number | undefined)): boolean {
+    let isRedPlayBool: boolean = true;
+
+    switch (typeof isRedPlay) {
+        case "string":
+            isRedPlay = isRedPlay.toLowerCase();
+            if (isRedPlay === "red" || isRedPlay === "r") isRedPlayBool = true;
+            if (isRedPlay === "black" || isRedPlay === "b") isRedPlayBool = false;
+            break
+        case "number":
+            isRedPlay = Math.sign(isRedPlay);
+            if (isRedPlay == 0) throw new Error("Invalid isRedPlay value = 0");
+            isRedPlayBool = isRedPlay > 0 ? true : false;
+            break
+        case "boolean":
+            isRedPlayBool = isRedPlay;
+            break
+        default:
+            isRedPlayBool = true
+    }
+
+
+    return isRedPlayBool;
+}
+
 const defaultPosition = [
     ["C1", null, null, "Z4", null, null, "z4", null, null, "c1",],
     ["M1", null, "P1", null, null, null, null, "p1", null, "m1",],
@@ -23,8 +48,8 @@ export class Board {
     public turn: number;
     public piecesPositionOnBoard: (Piece | null)[][];
 
-    constructor(startPositions: ((object | null)[][] | null)) {
-        this.redToPlay = true;
+    constructor(startPositions: ((object | null)[][] | null), redToPlay: boolean | string | number | undefined) {
+        this.redToPlay = parseSideToPlay(redToPlay);
         this.onBoardPieces = [];
         this.turn = 0;
 
@@ -120,9 +145,9 @@ export class Board {
     }
 
     /**
-     * Actually move a piece on board 
-     * @param move 
-     * @returns 
+     * Actually move a piece on board, use locally
+     * @param move a validated move
+     * @returns captured piece and this
      */
     _movePiece(move: Move) {
         let { x, y } = move.oldPosition;
@@ -135,7 +160,7 @@ export class Board {
         this.piecesPositionOnBoard[newX][newY] = thisPiece;
         thisPiece.position.x = newX; thisPiece.position.y = newY;
 
-        if (this.redToPlay) { this.redToPlay = false; } else { this.redToPlay = true; this.turn += 1; }
+        if (this.redToPlay === true) { this.redToPlay = false; } else { this.redToPlay = true; this.turn += 1; }
         this.onBoardPieces.splice(this.onBoardPieces.findIndex(x => { x == captured }), 1);
         return { captured: captured, board: this };
 
@@ -247,7 +272,7 @@ export class BoardGUI extends Board {
     public context2dAvailabler: any;
 
     constructor(startPositions: object[][] | null, context2dAvailabler: any, sizeSetting: BoardStyle) {
-        super(startPositions);
+        super(startPositions, undefined);
 
         this.context2dAvailabler = context2dAvailabler;
         let thisContext2d = context2dAvailabler.getContext("2d");
