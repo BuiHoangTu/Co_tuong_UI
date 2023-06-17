@@ -33,7 +33,7 @@ export class Bot {
 
     async opponentMakeMove(move: Move): Promise<Move> {
         this.board = this.board.movePiece(move).board;
-        await this.board.buildBoardTree(this.board.turn + this.searchDepth);
+        await this.board.buildBoardTree(this.searchDepth);
 
         let botMove: Move;
         if (this.botIsRed) botMove = this._maxValue(this.board).move;
@@ -107,8 +107,8 @@ class BoardBot extends Board {
         if (prevCaptured) this.prevCaptured = prevCaptured
     }
 
-    async buildBoardTree(untilTurnX: number): Promise<void> {
-        if (this.turn >= untilTurnX) return;
+    async buildBoardTree(treeDepth: number): Promise<void> {
+        if (treeDepth <= 0) return;
 
         if (!this.nextBoards) {
             let moves = allMoves(this);
@@ -121,7 +121,7 @@ class BoardBot extends Board {
         }
 
         this.nextBoards.forEach((nBoard) => {
-            nBoard.buildBoardTree(untilTurnX);
+            nBoard.buildBoardTree(treeDepth - 1);
         })
 
     }
