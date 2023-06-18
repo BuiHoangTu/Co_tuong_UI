@@ -1,5 +1,4 @@
-export default function allMoves() {
-    let x = allValidMove("black");
-    console.log(x);
+export function allMoves(b) {
+    let x = [];
     return x;
 }

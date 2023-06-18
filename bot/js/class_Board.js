@@ -1,4 +1,28 @@
 import { Xe, Ma, Vua, Si, Tuong, Phao, Tot } from "./class_Piece.js";
+function parseSideToPlay(isRedPlay) {
+    let isRedPlayBool = true;
+    switch (typeof isRedPlay) {
+        case "string":
+            isRedPlay = isRedPlay.toLowerCase();
+            if (isRedPlay === "red" || isRedPlay === "r")
+                isRedPlayBool = true;
+            if (isRedPlay === "black" || isRedPlay === "b")
+                isRedPlayBool = false;
+            break;
+        case "number":
+            isRedPlay = Math.sign(isRedPlay);
+            if (isRedPlay == 0)
+                throw new Error("Invalid isRedPlay value = 0");
+            isRedPlayBool = isRedPlay > 0 ? true : false;
+            break;
+        case "boolean":
+            isRedPlayBool = isRedPlay;
+            break;
+        default:
+            isRedPlayBool = true;
+    }
+    return isRedPlayBool;
+}
 const defaultPosition = [
     ["C1", null, null, "Z4", null, null, "z4", null, null, "c1",],
     ["M1", null, "P1", null, null, null, null, "p1", null, "m1",],
@@ -11,9 +35,9 @@ const defaultPosition = [
     ["C0", null, null, "Z0", null, null, "z0", null, null, "c0",]
 ];
 export class Board {
-    constructor(startPositions) {
+    constructor(startPositions, redToPlay) {
         var _a;
-        this.redToPlay = true;
+        this.redToPlay = parseSideToPlay(redToPlay);
         this.onBoardPieces = [];
         this.turn = 0;
         var refinedStartPositions;
@@ -104,7 +128,7 @@ export class Board {
         this.piecesPositionOnBoard[newX][newY] = thisPiece;
         thisPiece.position.x = newX;
         thisPiece.position.y = newY;
-        if (this.redToPlay) {
+        if (this.redToPlay === true) {
             this.redToPlay = false;
         }
         else {
@@ -174,7 +198,7 @@ class Dot {
 }
 export class BoardGUI extends Board {
     constructor(startPositions, context2dAvailabler, sizeSetting) {
-        super(startPositions);
+        super(startPositions, undefined);
         this.context2dAvailabler = context2dAvailabler;
         let thisContext2d = context2dAvailabler.getContext("2d");
         this.context2d = thisContext2d;
