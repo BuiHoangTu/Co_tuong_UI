@@ -2,6 +2,11 @@
   // Khởi tạo
   const game = new Xiangqi();
 
+  let _oldFen = [];
+  _oldFen.push(game.fen());
+  let _oldBoard = [];
+  let _depth = 3;
+
   const config = {
     boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
     pieceTheme: "./docs/img/xiangqipieces/wikimedia/{piece}.svg",
@@ -9,8 +14,7 @@
     position: game.fen(),
     draggable: true,
     onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: onSnapEnd
+    onDrop: onDrop
   };
 
   let board = Xiangqiboard("#myBoard1", config);
@@ -553,9 +557,18 @@
       this.searchDepth = searchDepth;
       this.botIsRed = botIsRed;
     }
+    setBoard(board) {
+      this.board = board;
+    }
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
         this.board = this.board.movePiece(move).board;
+
+        // if black haven't any moves to move. Black lose
+        if (allValidMove().length == 0) {
+          alert("Game over !!! You win !!!");
+          location.reload();
+        }
 
         let botMove = (yield this._minMaxAlphaBeta()).move;
 
@@ -566,6 +579,12 @@
 
         // move in boardBot
         this.board = this.board.movePiece(botMove).board;
+
+        // if Red haven't any moves to move. Red lose
+        if (allValidMove().length == 0) {
+          alert("Game over !!! You lose !!!");
+          location.reload();
+        }
 
         // return (yield this._minMaxAlphaBeta()).move;
       });
@@ -620,8 +639,9 @@
             game.load(oldFen);
             board.position(game.fen());
             return { point: point, move: move };
-          } else
-            throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+          } else {
+            move = makeRandomMove();
+          }
         }
       });
     }
@@ -664,8 +684,10 @@
             game.load(oldFen);
             board.position(game.fen());
             return { point: point, move: move };
-          } else
-            throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+          } else {
+            move = makeRandomMove();
+            console.log(move);
+          }
         }
       });
     }
@@ -678,24 +700,6 @@
       this.nextBoards = [];
       if (prevMove) this.prevMove = prevMove;
       if (prevCaptured) this.prevCaptured = prevCaptured;
-    }
-    buildBoardTree(treeDepth) {
-      return __awaiter(this, void 0, void 0, function* () {
-        if (treeDepth <= 0) return;
-        this.buildBoardLayer();
-        let i = 0;
-        this.nextBoards.forEach((nBoard) => {
-          let oldFen = game.fen();
-
-          game.move(moves.get(i));
-          board.position(game.fen());
-
-          nBoard.buildBoardTree(treeDepth - 1);
-
-          game.load(oldFen);
-          board.position(game.fen());
-        });
-      });
     }
     buildBoardLayer() {
       return __awaiter(this, void 0, void 0, function* () {
@@ -787,7 +791,7 @@
   }
 
   let _turn;
-  let _bot = new Bot(3, false, null);
+  let _bot = new Bot(_depth, false, null);
 
   function onDragStart(source, piece, position, orientation) {
     // do not pick up pieces if the game is over
@@ -800,9 +804,8 @@
   function makeMove(move) {
     _turn = game.turn();
     if (_turn == "b") {
-      let oppMove = "";
 
-      // console.log(move);
+      let oppMove = "";
 
       for (let i = 0; i < 4; i++) {
         if (move[i] == "a") oppMove += "0";
@@ -816,8 +819,6 @@
         else if (move[i] == "i") oppMove += "8";
         else oppMove += move[i];
       }
-
-      // console.log(oppMove);
 
       let _oopMove = {
         oldPosition: {
@@ -834,8 +835,24 @@
     }
   }
 
+  function makeRandomMove() {
+    let possibleMoves = allValidMove();
+
+    if (possibleMoves.length == 0) {
+      alert("Game over !!! You win !!!");
+      location.reload();
+    }
+
+    let randomIdx = Math.floor(Math.random() * possibleMoves.length);
+
+    return possibleMoves[randomIdx]
+  }
+
   function onDrop(source, target) {
     // see if the move is legal
+    _oldFen.push(game.fen());
+    _oldBoard.push(_bot.board);
+
     let move = game.move({
       from: source,
       to: target,
@@ -849,27 +866,19 @@
     makeMove(move.from + move.to);
   }
 
-  // update the board position after the piece snap
-  // for castling, en passant, pawn promotion
-  function onSnapEnd() {
-    board.position(game.fen());
-  }
-
   $(".undo_btn").click(function () {
-    game.undo();
+    game.load(_oldFen[_oldFen.length - 1]);
     board.position(game.fen());
-    _el_selecting ? _el_selecting.classList.remove("selecting") : "";
-  });
-
-  $(".redo_btn").click(function () {
-    game.redo();
-    board.position(game.fen());
-    _el_selecting ? _el_selecting.classList.remove("selecting") : "";
+    board1.position(game.fen());
+    _bot.setBoard(_oldBoard[_oldBoard.length - 1]);
+    _oldFen.pop();
+    _oldBoard.pop();
   });
 
   $(".reset_btn").click(function () {
     game.reset();
     board.position(game.fen());
-    _el_selecting ? _el_selecting.classList.remove("selecting") : "";
+    board1.position(game.fen());
+    _bot = new Bot(_depth, false, null);
   });
 })();
