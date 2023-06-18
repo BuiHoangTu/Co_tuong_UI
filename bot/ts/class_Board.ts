@@ -152,7 +152,7 @@ export class Board {
     _movePiece(move: Move) {
         let { x, y } = move.oldPosition;
         let thisPiece = this.piecesPositionOnBoard[x][y];
-        if (!thisPiece) throw new Error("There is no piece on old position:" + move.oldPosition);
+        if (!thisPiece) throw new Error("There is no piece on old position:{x:" + move.oldPosition.x + ", y:" + move.oldPosition.y + "}");
 
         let { x: newX, y: newY } = move.newPosition;
         this.piecesPositionOnBoard[x][y] = null;

@@ -232,6 +232,7 @@ class BoardBot extends Board {
     }
 
     movePiece(move: Move): { captured: Piece | null | undefined, board: BoardBot } {
+        // find if board is already constructed         
         for (let i = 0; i < this.nextBoards.length; i++) {
             if (this.nextBoards[i].prevMove === move) {
                 return { captured: this.nextBoards[i].prevCaptured, board: this.nextBoards[i] }
