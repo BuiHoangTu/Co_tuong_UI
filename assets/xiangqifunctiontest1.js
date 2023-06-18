@@ -5,7 +5,7 @@
   let _oldFen = [];
   _oldFen.push(game.fen());
   let _oldBoard = [];
-  let _depth = 3;
+  let _depth = 4;
 
   const config = {
     boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
@@ -570,6 +570,7 @@
           location.reload();
         }
 
+        console.log("main", (yield this._minMaxAlphaBeta()));
         let botMove = (yield this._minMaxAlphaBeta()).move;
 
         // move in UI (web)
@@ -618,7 +619,7 @@
             }
             waiter = nextBoard.buildBoardLayer();
           }
-          let point = 100000;
+          let point = -100000;
           let move;
           if (waiter)
             yield waiter;
@@ -626,11 +627,12 @@
           // console.log(nextnextBoards);
           for (let i = 0; i < nextnextBoards.length; i++) {
             let maxValue = yield this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point > maxValue.point) {
+            if (point <= maxValue.point) {
               point = maxValue.point;
               move = nextnextBoards[i].prevMove;
             }
-            if (point < alphaBeta.alpha)
+            console.log(point, move);
+            if (point >= alphaBeta.alpha)
               break;
             alphaBeta.beta = alphaBeta.beta < point ? alphaBeta.beta : point;
           }
@@ -671,11 +673,12 @@
           // console.log(nextnextBoards);
           for (let i = 0; i < nextnextBoards.length; i++) {
             let minValue = yield this._minAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point < minValue.point) {
+            if (point <= minValue.point) {
               point = minValue.point;
               move = nextnextBoards[i].prevMove;
             }
-            if (point > alphaBeta.beta)
+            console.log(point, move);
+            if (point >= alphaBeta.beta)
               break;
             alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
           }
