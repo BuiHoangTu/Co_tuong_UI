@@ -122,16 +122,13 @@ export class Bot {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
             else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
-            let waiter: Promise<void> | undefined;
-            if (!nextBoard.nextBoards) {
-                waiter = nextBoard.buildBoardLayer();
-                console.log("Tree is not built here, build more");
-            } 
+            let waiter: Promise<void>;
+            waiter = nextBoard.buildBoardLayer();
 
             let point = 100_000;
             let move: Move | undefined;
-            
-            if (waiter) await waiter;
+
+            await waiter;
             let nextnextBoards = nextBoard.nextBoards;
             for (let i = 0; i < nextnextBoards.length; i++) {
                 // v = min (x, _maxValue)
@@ -158,15 +155,12 @@ export class Bot {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
             else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
-            let waiter: Promise<void> | undefined;
-            if (!nextBoard.nextBoards) {
-                waiter = nextBoard.buildBoardLayer();
-                console.log("Tree is not built here, build more");
-            } 
+            let waiter: Promise<void>;
+            waiter = nextBoard.buildBoardLayer();
             let point = -100_000;
             let move: Move | undefined
 
-            if (waiter) await waiter;
+            await waiter;
             let nextnextBoards = nextBoard.nextBoards;
             for (let i = 0; i < nextnextBoards.length; i++) {
                 // v = max (x, _minValue)
@@ -230,7 +224,7 @@ class BoardBot extends Board {
      * Set value for nextBoards if empty 
      */
     async buildBoardLayer() {
-        if (!this.nextBoards) {
+        if (this.nextBoards.length == 0) {
             allMoves(this).forEach((move) => {
                 this.nextBoards.push(this.movePiece(move).board);
             });

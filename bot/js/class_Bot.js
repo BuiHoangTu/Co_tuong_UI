@@ -116,14 +116,10 @@ export class Bot {
             }
             else {
                 let waiter;
-                if (!nextBoard.nextBoards) {
-                    waiter = nextBoard.buildBoardLayer();
-                    console.log("Tree is not built here, build more");
-                }
+                waiter = nextBoard.buildBoardLayer();
                 let point = 100000;
                 let move;
-                if (waiter)
-                    yield waiter;
+                yield waiter;
                 let nextnextBoards = nextBoard.nextBoards;
                 for (let i = 0; i < nextnextBoards.length; i++) {
                     let maxValue = yield this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
@@ -152,14 +148,10 @@ export class Bot {
             }
             else {
                 let waiter;
-                if (!nextBoard.nextBoards) {
-                    waiter = nextBoard.buildBoardLayer();
-                    console.log("Tree is not built here, build more");
-                }
+                waiter = nextBoard.buildBoardLayer();
                 let point = -100000;
                 let move;
-                if (waiter)
-                    yield waiter;
+                yield waiter;
                 let nextnextBoards = nextBoard.nextBoards;
                 for (let i = 0; i < nextnextBoards.length; i++) {
                     let minValue = yield this._minAlphaBeta(nextnextBoards[i], alphaBeta);
@@ -200,7 +192,7 @@ class BoardBot extends Board {
     }
     buildBoardLayer() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.nextBoards) {
+            if (this.nextBoards.length == 0) {
                 allMoves(this).forEach((move) => {
                     this.nextBoards.push(this.movePiece(move).board);
                 });
