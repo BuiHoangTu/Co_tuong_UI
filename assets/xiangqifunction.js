@@ -140,16 +140,23 @@
   function parseSide(isRedPiece) {
     let scale = 0;
     if (typeof isRedPiece === "boolean") {
-      if (isRedPiece) scale = 1;
-      else scale = -1;
-    } else if (typeof isRedPiece === "string") {
+      if (isRedPiece)
+        scale = 1;
+      else
+        scale = -1;
+    }
+    else if (typeof isRedPiece === "string") {
       isRedPiece = isRedPiece.toLowerCase();
-      if (isRedPiece === "red" || isRedPiece === "r") scale = 1;
-      if (isRedPiece === "black" || isRedPiece === "b") scale = -1;
-    } else if (typeof isRedPiece === "number") {
+      if (isRedPiece === "red" || isRedPiece === "r")
+        scale = 1;
+      if (isRedPiece === "black" || isRedPiece === "b")
+        scale = -1;
+    }
+    else if (typeof isRedPiece === "number") {
       isRedPiece = Math.sign(isRedPiece);
     }
-    if (scale == 0) throw new Error("Invalid isRedPiece value");
+    if (scale == 0)
+      throw new Error("Invalid isRedPiece value");
     return scale;
   }
 
@@ -211,9 +218,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Xe[x][y];
     }
 
@@ -236,9 +240,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Ma[x][y];
     }
 
@@ -279,9 +280,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Si[x][y];
     }
 
@@ -304,9 +302,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Tuong[x][y];
     }
 
@@ -329,9 +324,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Phao[x][y];
     }
 
@@ -354,9 +346,6 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
-      if (this.scale < 0) {
-        y = y * this.scale - 1;
-      }
       return POSITION_VALUES.Tot[x][y];
     }
 
@@ -368,6 +357,32 @@
   // ----------------------------------------------------------------
   // class_Board
   // ----------------------------------------------------------------
+
+  // parse side to play
+  function parseSideToPlay(isRedPlay) {
+    let isRedPlayBool = true;
+    switch (typeof isRedPlay) {
+      case "string":
+        isRedPlay = isRedPlay.toLowerCase();
+        if (isRedPlay === "red" || isRedPlay === "r")
+          isRedPlayBool = true;
+        if (isRedPlay === "black" || isRedPlay === "b")
+          isRedPlayBool = false;
+        break;
+      case "number":
+        isRedPlay = Math.sign(isRedPlay);
+        if (isRedPlay == 0)
+          throw new Error("Invalid isRedPlay value = 0");
+        isRedPlayBool = isRedPlay > 0 ? true : false;
+        break;
+      case "boolean":
+        isRedPlayBool = isRedPlay;
+        break;
+      default:
+        isRedPlayBool = true;
+    }
+    return isRedPlayBool;
+  }
 
   // Default position for player Board
   const defaultPosition = [
@@ -384,11 +399,12 @@
 
   // Class Board for AI plays
   class Board {
-    constructor(startPositions) {
+    constructor(startPositions, redToPlay) {
       var _a;
-      this.redToPlay = true;
+      this.redToPlay = parseSideToPlay(redToPlay);
       this.onBoardPieces = [];
       this.turn = 0;
+
       var refinedStartPositions;
       if (startPositions) refinedStartPositions = startPositions;
       else refinedStartPositions = defaultPosition;
@@ -479,6 +495,8 @@
     _movePiece(move) {
       // js
       let { x, y } = move.oldPosition;
+      console.log(x,y);
+      console.log(this.piecesPositionOnBoard);
       let thisPiece = this.piecesPositionOnBoard[x][y];
       if (!thisPiece)
         throw new Error(
@@ -490,7 +508,7 @@
       this.piecesPositionOnBoard[newX][newY] = thisPiece;
       thisPiece.position.x = newX;
       thisPiece.position.y = newY;
-      if (this.redToPlay) {
+      if (this.redToPlay === true) {
         this.redToPlay = false;
       } else {
         this.redToPlay = true;
@@ -500,7 +518,7 @@
         this.onBoardPieces.findIndex((x) => {
           x == captured;
         }),
-        1
+        0
       );
       return { captured: captured, board: this };
     }
@@ -521,154 +539,187 @@
     });
   };
 
+  // Some type in bot
+  function boardDepth(board) {
+    return board.turn * 2 + (board.redToPlay ? 0 : 1);
+  }
+
   // Class Bot for calculate move in depth
   class Bot {
     constructor(searchDepth, botIsRed, startPositions) {
       this.board = new BoardBot(startPositions, null, null);
+      this.board = new BoardBot(startPositions, undefined, undefined, undefined);
       this.searchDepth = searchDepth;
       this.botIsRed = botIsRed;
     }
-
-    // --------------------------------------------
-
-    botFirstMove() {
-      let firstMove = {
-        oldPosition: { x: 4, y: 3 },
-        newPosition: { x: 4, y: 4 }
-      };
-      this.board._movePiece(firstMove);
-      return firstMove;
-    }
-
-    // TODO: Chưa thấy dùng -----------------------
-
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
         this.board = this.board.movePiece(move).board;
-        yield this.board.buildBoardTree(this.board.turn + this.searchDepth, this.board.turn);
-        let botMove;
-        if (this.botIsRed)
-          botMove = this._maxValue(this.board);
-        else
-          botMove = this._minValue(this.board);
-        // if (this.botIsRed)
-        //   botMove = this._minValue(this.board).move;
-        // else
-        //   botMove = this._maxValue(this.board).move;
-        return botMove;
+        console.log(this.board);
+
+        let botMove = (yield this._minMaxAlphaBeta()).move;
+
+        // move in UI (web)
+        game.move(parseMove(botMove));
+        board.position(game.fen());
+        board1.position(game.fen());
+
+        // move in boardBot
+        this.board = this.board.movePiece(botMove).board;
+        console.log(this.board);
+
+        // return (yield this._minMaxAlphaBeta()).move;
       });
     }
-    _maxValue(nextBoard) {
-      if (nextBoard.turn - this.board.turn >= this.searchDepth - 1) {
-        if (nextBoard.prevMove)
-          return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-        else throw new Error("This board `" + nextBoard + "` is broken");
-      } else {
-        let nextnextBoards = nextBoard.nextBoards;
-        let point = -100000;
-        let move;
-        if (nextnextBoards.length <= 0)
-          throw new Error("Tree is not built here");
-        for (let i = 0; i < nextnextBoards.length; i++) {
-          let minValue = this._minValue(nextnextBoards[i]);
-          if (point < minValue.point) {
-            point = minValue.point;
-            move = nextnextBoards[i].prevMove;
-          }
-        }
-
-        console.log(move);
-
-        if (move) return { point: point, move: move };
-        else throw new Error("This board `" + nextBoard + "` is broken");
-      }
+    _minMaxAlphaBeta() {
+      return __awaiter(this, void 0, void 0, function* () {
+        let alphaBeta = { alpha: -100000, beta: 100000 };
+        let minMaxOutput;
+        if (this.botIsRed)
+          minMaxOutput = this._maxAlphaBeta(this.board, alphaBeta);
+        else
+          minMaxOutput = this._minAlphaBeta(this.board, alphaBeta);
+        return minMaxOutput;
+      });
     }
-    _minValue(nextBoard) {
-      if (nextBoard.turn - this.board.turn >= this.searchDepth - 1) {
-        if (nextBoard.prevMove)
-          return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-        else throw new Error("This board `" + nextBoard + "` is broken");
-      } else {
-        let nextnextBoards = nextBoard.nextBoards;
-        let point = 100000;
-        let move;
-        if (nextnextBoards.length <= 0)
-          throw new Error("Tree is not built here");
-        for (let i = 0; i < nextnextBoards.length; i++) {
-          let maxValue = this._maxValue(nextnextBoards[i]);
-          if (point > maxValue.point) {
-            point = maxValue.point;
-            move = nextnextBoards[i].prevMove;
-          }
+    _minAlphaBeta(nextBoard, alphaBeta) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
+          if (nextBoard.prevMove.length != 0) {
+            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
+          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
         }
+        else {
+          let oldFen = game.fen();
 
-        console.log(move);
+          let waiter;
+          if (nextBoard.nextBoards.length == 0) {
+            if (nextBoard.prevMove.length != 0) {
+              game.move(parseMove(nextBoard.prevMove));
+              board.position(game.fen());
+            }
+            waiter = nextBoard.buildBoardLayer();
+          }
+          let point = 100000;
+          let move;
+          if (waiter)
+            yield waiter;
+          let nextnextBoards = nextBoard.nextBoards;
+          // console.log(nextnextBoards);
+          for (let i = 0; i < nextnextBoards.length; i++) {
+            let maxValue = yield this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
+            if (point > maxValue.point) {
+              point = maxValue.point;
+              move = nextnextBoards[i].prevMove;
+            }
+            if (point < alphaBeta.alpha)
+              break;
+            alphaBeta.beta = alphaBeta.beta < point ? alphaBeta.beta : point;
+          }
+          if (move) {
+            // console.log({ point: point, move: move });
+            game.load(oldFen);
+            board.position(game.fen());
+            return { point: point, move: move };
+          } else
+            throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+        }
+      });
+    }
+    _maxAlphaBeta(nextBoard, alphaBeta) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
+          if (nextBoard.prevMove.length != 0) {
+            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
+          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
+        }
+        else {
+          let oldFen = game.fen();
 
-        if (move) return { point: point, move: move };
-        else throw new Error("This board `" + nextBoard + "` is broken");
-      }
+          let waiter;
+          if (nextBoard.nextBoards.length == 0) {
+            if (nextBoard.prevMove.length != 0) {
+              game.move(parseMove(nextBoard.prevMove));
+              board.position(game.fen());
+            }
+            waiter = nextBoard.buildBoardLayer();
+          }
+          let point = -100000;
+          let move;
+          if (waiter)
+            yield waiter;
+          let nextnextBoards = nextBoard.nextBoards;
+          // console.log(nextnextBoards);
+          for (let i = 0; i < nextnextBoards.length; i++) {
+            let minValue = yield this._minAlphaBeta(nextnextBoards[i], alphaBeta);
+            if (point < minValue.point) {
+              point = minValue.point;
+              move = nextnextBoards[i].prevMove;
+            }
+            if (point > alphaBeta.beta)
+              break;
+            alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
+          }
+          if (move) {
+            // console.log({ point: point, move: move });
+            game.load(oldFen);
+            board.position(game.fen());
+            return { point: point, move: move };
+          } else
+            throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+        }
+      });
     }
   }
 
   // Class Board of Bot
   class BoardBot extends Board {
-    constructor(startPositions, prevMove, prevCaptured) {
-      super(startPositions);
+    constructor(startPositions, prevMove, prevCaptured, redToPlay) {
+      super(startPositions, redToPlay);
       this.nextBoards = [];
       if (prevMove) this.prevMove = prevMove;
       if (prevCaptured) this.prevCaptured = prevCaptured;
     }
-    buildBoardTree(untilTurnX) {
+    buildBoardTree(treeDepth) {
       return __awaiter(this, void 0, void 0, function* () {
-
-        console.log(this.turn);
-        let _moves = [];
-
-        if (this.turn >= untilTurnX - 1) return;
-
-        if (this.nextBoards.length == 0) {
-          let moves = allValidMove();
-          moves.forEach((move) => {
-            _moves.push(parseMove(move));
-            let b = this.movePiece(move).board;
-            this.nextBoards.push(b);
-          });
-        }
-
-        // console.log(_moves);
-
+        if (treeDepth <= 0) return;
+        this.buildBoardLayer();
         let i = 0;
-
         this.nextBoards.forEach((nBoard) => {
           let oldFen = game.fen();
 
-          game.move(_moves[i]);
+          game.move(moves.get(i));
+          board.position(game.fen());
 
-          // js
-          nBoard.buildBoardTree(untilTurnX);
+          nBoard.buildBoardTree(treeDepth - 1);
 
           game.load(oldFen);
           board.position(game.fen());
-          i++;
         });
       });
     }
+    buildBoardLayer() {
+      return __awaiter(this, void 0, void 0, function* () {
+        let moves = [];
+        if (this.nextBoards.length == 0) {
+          allValidMove().forEach((move) => {
+            moves.push(parseMove(move));
+            this.nextBoards.push(this.movePiece(move).board);
+          });
+        }
+      });
+    }
     movePiece(move) {
-
       for (let i = 0; i < this.nextBoards.length; i++) {
         if (this.nextBoards[i].prevMove === move) {
           return {
             captured: this.nextBoards[i].prevCaptured,
-            board: this.nextBoards[i],
+            board: this.nextBoards[i]
           };
         }
       }
-      let b = new BoardBot(
-        this.piecesPositionOnBoard,
-        move,
-        this.prevCaptured
-      );
-      b.turn = this.turn + 1;
+      let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured, this.redToPlay);
+      b.turn = this.turn;
       return b._movePiece(move);
     }
   }
@@ -681,6 +732,7 @@
   let _moves;
   let _el_selecting;
   let _turn;
+  let _bot = new Bot(3, false, null);
 
   function hasMove(moves, move) {
     for (let i in moves) {
@@ -718,20 +770,6 @@
     _move += move.newPosition.y
 
     return _move;
-  }
-
-  function turnBlackturn() {
-    let fen = game.fen();
-    let x;
-
-    for (let i = 0; i < fen.length; i++) {
-      if (fen[i] == 'r' && fen[i - 1] == ' ') x = i;
-    }
-
-    fen = fen.slice(0, x) + 'b' + fen.slice(x + 1, fen.length);
-
-    game.load(fen);
-    board.position(game.fen());
   }
 
   function allValidMove() {
@@ -796,10 +834,6 @@
       board1.position(game.fen());
 
       if (_turn == "r") {
-        let oldFen = game.fen();
-
-        let bot = new Bot(3, false, null);
-
         let oppMove = "";
 
         // console.log(move);
@@ -830,7 +864,7 @@
           },
         };
 
-        console.log(bot.opponentMakeMove(_oopMove));
+        _bot.opponentMakeMove(_oopMove);
       }
     }
   });
