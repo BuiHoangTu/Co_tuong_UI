@@ -46,15 +46,15 @@ export class Bot {
 
     async opponentMakeMove(move: Move): Promise<Move> {
         this.board = this.board.movePiece(move).board;
-        await this.board.buildBoardTree(this.searchDepth);
 
-        return this._minMaxAlphaBeta().move;
+        return (await this._minMaxAlphaBeta()).move;
     }
 
     //#region min-max 
-    _minMax(): MinMaxOutput {
-        let minMaxOutput: MinMaxOutput;
+    async _minMax(): Promise<MinMaxOutput> {
+        await this.board.buildBoardTree(this.searchDepth);
 
+        let minMaxOutput: MinMaxOutput;
         if (this.botIsRed) minMaxOutput = this._maxValue(this.board);
         else minMaxOutput = this._minValue(this.board);
 
@@ -106,37 +106,44 @@ export class Bot {
     //#endregion
 
     //#region min-max with alpha-beta prune
-    _minMaxAlphaBeta() {
+    async _minMaxAlphaBeta() {
         let alphaBeta = { alpha: -100_000, beta: 100_000 };
 
-        let minMaxOutput: MinMaxOutput;
+        let minMaxOutput: Promise<MinMaxOutput>;
 
         if (this.botIsRed) minMaxOutput = this._maxAlphaBeta(this.board, alphaBeta);
         else minMaxOutput = this._minAlphaBeta(this.board, alphaBeta);
 
-        return minMaxOutput
+        return minMaxOutput;
     }
 
-    _minAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): MinMaxOutput {
+    async _minAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
         if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
             else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
-            let nextnextBoards = nextBoard.nextBoards;
+            let waiter: Promise<void> | undefined;
+            if (!nextBoard.nextBoards) {
+                waiter = nextBoard.buildBoardLayer();
+                console.log("Tree is not built here, build more");
+            } 
+
             let point = 100_000;
             let move: Move | undefined;
-            if (!nextnextBoards) throw new Error("Tree is not built here");
+            
+            if (waiter) await waiter;
+            let nextnextBoards = nextBoard.nextBoards;
             for (let i = 0; i < nextnextBoards.length; i++) {
                 // v = min (x, _maxValue)
-                let maxValue = this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
+                let maxValue = await this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
                 if (point > maxValue.point) {
                     point = maxValue.point;
                     move = nextnextBoards[i].prevMove;
                 }
-                
+
                 // break loop to go to outer return 
                 if (point < alphaBeta.alpha) break;
-                
+
                 // beta = min (beta, v)
                 alphaBeta.beta = alphaBeta.beta < point ? alphaBeta.beta : point;
             }
@@ -146,26 +153,32 @@ export class Bot {
         }
     }
 
-    _maxAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): MinMaxOutput {
+    async _maxAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
         if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
             else throw new Error("This board `" + nextBoard + "` lack prevMove");
         } else {
-            let nextnextBoards = nextBoard.nextBoards;
+            let waiter: Promise<void> | undefined;
+            if (!nextBoard.nextBoards) {
+                waiter = nextBoard.buildBoardLayer();
+                console.log("Tree is not built here, build more");
+            } 
             let point = -100_000;
-            let move: Move | undefined;
-            if (!nextnextBoards) throw new Error("Tree is not built here");
+            let move: Move | undefined
+
+            if (waiter) await waiter;
+            let nextnextBoards = nextBoard.nextBoards;
             for (let i = 0; i < nextnextBoards.length; i++) {
                 // v = max (x, _minValue)
-                let minValue = this._minAlphaBeta(nextnextBoards[i], alphaBeta);
+                let minValue = await this._minAlphaBeta(nextnextBoards[i], alphaBeta);
                 if (point < minValue.point) {
                     point = minValue.point;
                     move = nextnextBoards[i].prevMove;
                 }
-                
+
                 // break loop to go to outer return 
                 if (point > alphaBeta.beta) break;
-                
+
                 // beta = min (beta, v)
                 alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
             }
@@ -197,23 +210,31 @@ class BoardBot extends Board {
         if (prevCaptured) this.prevCaptured = prevCaptured
     }
 
+    /**
+     * Build whole tree upto treeDepth, value stored in nextBoards 
+     * @param treeDepth amount of layers to build
+     */
     async buildBoardTree(treeDepth: number): Promise<void> {
         if (treeDepth <= 0) return;
 
-        if (!this.nextBoards) {
-            let moves = allMoves(this);
-
-            moves.forEach((move) => {
-                let b = this.movePiece(move).board;
-
-                this.nextBoards.push(b);
-            });
-        }
+        this.buildBoardLayer();
 
         this.nextBoards.forEach((nBoard) => {
             nBoard.buildBoardTree(treeDepth - 1);
         })
 
+    }
+
+    /**
+     * Build the next layer if not existed yet
+     * Set value for nextBoards if empty 
+     */
+    async buildBoardLayer() {
+        if (!this.nextBoards) {
+            allMoves(this).forEach((move) => {
+                this.nextBoards.push(this.movePiece(move).board);
+            });
+        }
     }
 
     movePiece(move: Move): { captured: Piece | null | undefined, board: BoardBot } {
