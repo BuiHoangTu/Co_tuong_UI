@@ -205,6 +205,9 @@ export class Xe extends Piece {
         }
         return POSITION_VALUES.Xe[x][y];
     }
+    toString() {
+        return this.scale > 0 ? "C" : "c";
+    }
 }
 export class Ma extends Piece {
     constructor(isRedPiece, position) {
@@ -226,6 +229,9 @@ export class Ma extends Piece {
         }
         return POSITION_VALUES.Ma[x][y];
     }
+    toString() {
+        return this.scale > 0 ? "M" : "m";
+    }
 }
 export class Vua extends Piece {
     constructor(isRedPiece, position) {
@@ -239,6 +245,9 @@ export class Vua extends Piece {
         }
         this.text = properties.text;
         this.imgStr = properties.imgStr;
+    }
+    toString() {
+        return this.scale > 0 ? "J" : "j";
     }
 }
 export class Si extends Piece {
@@ -261,6 +270,9 @@ export class Si extends Piece {
         }
         return POSITION_VALUES.Si[x][y];
     }
+    toString() {
+        return this.scale > 0 ? "S" : "s";
+    }
 }
 export class Tuong extends Piece {
     constructor(isRedPiece, position) {
@@ -281,6 +293,9 @@ export class Tuong extends Piece {
             y = y * this.scale - 1;
         }
         return POSITION_VALUES.Tuong[x][y];
+    }
+    toString() {
+        return this.scale > 0 ? "X" : "x";
     }
 }
 export class Phao extends Piece {
@@ -303,6 +318,9 @@ export class Phao extends Piece {
         }
         return POSITION_VALUES.Phao[x][y];
     }
+    toString() {
+        return this.scale > 0 ? "P" : "p";
+    }
 }
 export class Tot extends Piece {
     constructor(isRedPiece, position) {
@@ -323,5 +341,8 @@ export class Tot extends Piece {
             y = y * this.scale - 1;
         }
         return POSITION_VALUES.Tot[x][y];
+    }
+    toString() {
+        return this.scale > 0 ? "Z" : "z";
     }
 }
