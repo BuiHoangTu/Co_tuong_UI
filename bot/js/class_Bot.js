@@ -209,7 +209,7 @@ class BoardBot extends Board {
     }
     buildBoardLayer() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.nextBoards) {
+            if (this.nextBoards.length <= 0) {
                 allMoves(this).forEach((move) => {
                     this.nextBoards.push(this.movePiece(move).board);
                 });
