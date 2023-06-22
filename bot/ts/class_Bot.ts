@@ -2,6 +2,7 @@ import { Board } from "./class_Board.js"
 import { allMoves } from "./common.js"
 import type { Move } from "./class_Board.js";
 import { Piece } from "./class_Piece.js";
+import { ErrorNoPrevMove, ErrorTreeNotBuilt } from "./error_Board.js";
 
 type AlphaBeta = {
     alpha: number,
@@ -68,43 +69,45 @@ export class Bot {
     _maxValue(nextBoard: BoardBot): MinMaxOutput {
         if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` lack prevMove");
+            else throw new ErrorNoPrevMove(nextBoard);
         } else {
             let nextnextBoards = nextBoard.nextBoards;
             let point = -100_000;
             let move: Move | undefined;
-            if (nextnextBoards.length <= 0) throw new Error("Tree is not built here")
+            if (nextnextBoards.length <= 0) throw new ErrorTreeNotBuilt();
             for (let i = 0; i < nextnextBoards.length; i++) {
                 let minValue = this._minValue(nextnextBoards[i]);
                 if (point < minValue.point) {
                     point = minValue.point;
                     move = nextnextBoards[i].prevMove;
+                    if (!move) throw new ErrorNoPrevMove(nextnextBoards[i]);
                 }
             }
             if (move) return { point: point, move: move }
-            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+            else throw new Error("Unknow Error");
         }
     }
 
     _minValue(nextBoard: BoardBot): MinMaxOutput {
         if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
             if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` lack prevMove");
+            else throw new ErrorNoPrevMove(nextBoard);
         } else {
             let nextnextBoards = nextBoard.nextBoards;
             let point = 100_000;
             let move: Move | undefined;
-            if (nextnextBoards.length <= 0) throw new Error("Tree is not built here")
+            if (nextnextBoards.length <= 0) throw new ErrorTreeNotBuilt();
             for (let i = 0; i < nextnextBoards.length; i++) {
                 // v = min (x, _maxValue)
                 let maxValue = this._maxValue(nextnextBoards[i]);
                 if (point > maxValue.point) {
                     point = maxValue.point;
                     move = nextnextBoards[i].prevMove;
+                    if (!move) throw new ErrorNoPrevMove(nextnextBoards[i]);
                 }
             }
             if (move) return { point: point, move: move }
-            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+            else throw new Error("Unknown Error");
 
         }
     }
@@ -122,28 +125,28 @@ export class Bot {
         return minMaxOutput;
     }
 
-    async _minAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-            if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` lack prevMove");
+    async _minAlphaBeta(board: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+            return this._quickReturn(board);
         } else {
             let waiter: Promise<void> | undefined;
-            if (!nextBoard.nextBoards) {
-                waiter = nextBoard.buildBoardLayer();
+            if (board.nextBoards.length <= 0) {
+                waiter = board.buildBoardLayer();
                 console.log("Tree is not built here, build more");
-            } 
+            }
 
             let point = 100_000;
             let move: Move | undefined;
-            
+
             if (waiter) await waiter;
-            let nextnextBoards = nextBoard.nextBoards;
-            for (let i = 0; i < nextnextBoards.length; i++) {
+            let nextBoards = board.nextBoards;
+            if (nextBoards.length <= 0) this._quickReturn(board); // no available move from this
+            for (let i = 0; i < nextBoards.length; i++) {
                 // v = min (x, _maxValue)
-                let maxValue = await this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
+                let maxValue = await this._maxAlphaBeta(nextBoards[i], alphaBeta);
                 if (point > maxValue.point) {
                     point = maxValue.point;
-                    move = nextnextBoards[i].prevMove;
+                    move = nextBoards[i].prevMove;
                 }
 
                 // break loop to go to outer return 
@@ -154,43 +157,48 @@ export class Bot {
             }
 
             if (move) return { point: point, move: move }
-            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+            else throw new Error("Unknown Error");
         }
     }
 
-    async _maxAlphaBeta(nextBoard: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-            if (nextBoard.prevMove) return { point: nextBoard.getPoint(), move: nextBoard.prevMove }
-            else throw new Error("This board `" + nextBoard + "` lack prevMove");
+    async _maxAlphaBeta(board: BoardBot, alphaBeta: AlphaBeta): Promise<MinMaxOutput> {
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+            return this._quickReturn(board);
         } else {
             let waiter: Promise<void> | undefined;
-            if (!nextBoard.nextBoards) {
-                waiter = nextBoard.buildBoardLayer();
+            if (board.nextBoards.length <= 0) {
+                waiter = board.buildBoardLayer();
                 console.log("Tree is not built here, build more");
-            } 
+            }
             let point = -100_000;
             let move: Move | undefined
 
             if (waiter) await waiter;
-            let nextnextBoards = nextBoard.nextBoards;
-            for (let i = 0; i < nextnextBoards.length; i++) {
+            let nextBoards = board.nextBoards;
+            if (nextBoards.length <= 0) this._quickReturn(board); // no available move from this
+            for (let i = 0; i < nextBoards.length; i++) {
                 // v = max (x, _minValue)
-                let minValue = await this._minAlphaBeta(nextnextBoards[i], alphaBeta);
+                let minValue = await this._minAlphaBeta(nextBoards[i], alphaBeta);
                 if (point < minValue.point) {
                     point = minValue.point;
-                    move = nextnextBoards[i].prevMove;
+                    move = nextBoards[i].prevMove;
                 }
 
                 // break loop to go to outer return 
                 if (point > alphaBeta.beta) break;
 
-                // beta = min (beta, v)
+                // alpha = min (alpha, v)
                 alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
             }
 
             if (move) return { point: point, move: move }
-            else throw new Error("No move saved to achieve nextnextBoard `" + nextBoard + "`");
+            else throw new Error("Unknown Error");
         }
+    }
+
+    _quickReturn(board: BoardBot) {
+        if (board.prevMove) return { point: board.getPoint(), move: board.prevMove }
+        else throw new ErrorNoPrevMove(board);
     }
 
     //#endregion
