@@ -12,6 +12,11 @@ type MinMaxOutput = {
     move: Move
 }
 
+/**
+ * Convert turn and side-to-move base to depth base
+ * @param board Board instance that need depth
+ * @returns depth of board
+ */
 function boardDepth(board: Board) {
     return board.turn * 2 + (board.redToPlay ? 0 : 1);
 }

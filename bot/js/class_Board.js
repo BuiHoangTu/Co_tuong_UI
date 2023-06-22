@@ -51,7 +51,7 @@ export class Board {
             this.piecesPositionOnBoard.push(colPieces);
             for (var j = 0; j < refinedStartPositions[i].length; j++) {
                 const pieceChar = (_a = refinedStartPositions[i][j]) === null || _a === void 0 ? void 0 : _a.toString().charAt(0);
-                var thisPiece;
+                let thisPiece;
                 switch (pieceChar) {
                     case undefined:
                         thisPiece = null;
@@ -106,6 +106,10 @@ export class Board {
                     this.onBoardPieces.push(thisPiece);
             }
         }
+        console.log("Your boards:");
+        console.log(this.toString());
+        console.log("Pieces on boards:");
+        console.log(this.onBoardPieces);
     }
     getPoint() {
         let point = 0;
@@ -135,8 +139,43 @@ export class Board {
             this.redToPlay = true;
             this.turn += 1;
         }
-        this.onBoardPieces.splice(this.onBoardPieces.findIndex(x => { x == captured; }), 1);
+        if (captured) {
+            const capturedIndex = this.onBoardPieces.findIndex(x => { x == captured; });
+            if (capturedIndex < 0) {
+                const template = "The captured Piece {pieceStr} was at [{x}, {y}] but wasn't exist in onBoardPieces";
+                const message = template
+                    .replace("{pieceStr}", captured.toString())
+                    .replace("{x}", newX + "")
+                    .replace("{y}", newY + "");
+                throw new Error(message);
+            }
+            this.onBoardPieces.splice(capturedIndex, 1);
+        }
         return { captured: captured, board: this };
+    }
+    toString() {
+        var _a;
+        let outp = "";
+        for (let x = 0; x < this.piecesPositionOnBoard.length; x++) {
+            for (let y = this.piecesPositionOnBoard[x].length; y >= 0; y--) {
+                let pieceStr = ((_a = this.piecesPositionOnBoard[x][y]) === null || _a === void 0 ? void 0 : _a.toString().charAt(0)) || " ";
+                outp.concat(pieceStr);
+            }
+            outp.concat("\n");
+        }
+        return outp;
+    }
+    toChineseString() {
+        var _a, _b;
+        let outp = "";
+        for (let x = 0; x < this.piecesPositionOnBoard.length; x++) {
+            for (let y = this.piecesPositionOnBoard[x].length; y >= 0; y--) {
+                let pieceStr = ((_b = (_a = this.piecesPositionOnBoard[x][y]) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.charAt(0)) || " ";
+                outp.concat(pieceStr);
+            }
+            outp.concat("\n");
+        }
+        return outp;
     }
 }
 const defaultStyle = {

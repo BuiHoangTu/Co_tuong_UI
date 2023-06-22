@@ -16,18 +16,86 @@ const PROPERTIES = {
         Tuong: { text: "象", imgStr: 'r_j' },
         Phao: { text: "砲", imgStr: 'r_p' },
         Tot: { text: "卒", imgStr: 'r_z' }
-    }
+    },
+    yLength: 10,
+    xLength: 9
 };
 const VALUE = {
-    Xe: 100,
-    Ma: 45,
+    Xe: 0,
+    Ma: 0,
     Vua: 9999,
-    Si: 20,
-    Tuong: 25,
-    Phao: 50,
-    Tot: 10
+    Si: 0,
+    Tuong: 0,
+    Phao: 0,
+    Tot: 0
 };
 let POSITION_VALUES = {};
+POSITION_VALUES.Xe = [
+    [206, 206, 206, 206, 208, 208, 204, 198, 200, 194],
+    [208, 212, 208, 213, 211, 212, 209, 208, 208, 206],
+    [207, 209, 207, 213, 211, 212, 204, 204, 206, 204],
+    [213, 216, 214, 216, 214, 214, 212, 212, 212, 212],
+    [214, 233, 216, 216, 215, 215, 214, 212, 200, 200],
+    [213, 216, 214, 216, 214, 214, 212, 212, 212, 212],
+    [207, 209, 207, 213, 211, 212, 204, 204, 206, 204],
+    [208, 212, 208, 213, 211, 212, 209, 208, 208, 206],
+    [206, 206, 206, 206, 208, 208, 204, 198, 200, 194],
+];
+POSITION_VALUES.Ma = [
+    [90, 90, 92, 93, 90, 90, 92, 93, 85, 88],
+    [90, 96, 98, 108, 100, 98, 94, 92, 90, 85],
+    [90, 103, 99, 100, 99, 101, 98, 94, 92, 90],
+    [96, 97, 103, 107, 103, 102, 95, 95, 93, 88],
+    [90, 94, 99, 100, 104, 103, 98, 92, 78, 90],
+    [96, 97, 103, 107, 103, 102, 95, 95, 93, 88],
+    [90, 103, 99, 100, 99, 101, 98, 94, 92, 90],
+    [90, 96, 98, 108, 100, 98, 94, 92, 90, 85],
+    [90, 90, 92, 93, 90, 90, 92, 93, 85, 88],
+];
+POSITION_VALUES.Tuong = [
+    [0, 0, 18, 0, 0, 0, 0, 18, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [20, 0, 0, 0, 20, 20, 0, 0, 0, 20],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 23, 0, 0, 0, 0, 23, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [20, 0, 0, 0, 20, 20, 0, 0, 0, 20],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 18, 0, 0, 0, 0, 18, 0, 0]
+];
+POSITION_VALUES.Si = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [20, 0, 20, 0, 0, 0, 0, 20, 0, 20],
+    [0, 23, 0, 0, 0, 0, 0, 0, 23, 0],
+    [20, 0, 20, 0, 0, 0, 0, 20, 0, 20],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+POSITION_VALUES.Phao = [
+    [100, 98, 97, 96, 96, 95, 96, 97, 96, 96],
+    [100, 98, 97, 99, 96, 96, 96, 96, 97, 96],
+    [96, 96, 96, 99, 96, 99, 96, 100, 98, 97],
+    [91, 92, 91, 98, 96, 96, 96, 99, 98, 99],
+    [90, 89, 92, 100, 100, 100, 96, 101, 98, 99],
+    [91, 92, 91, 98, 96, 96, 96, 99, 98, 99],
+    [96, 96, 96, 99, 96, 99, 96, 100, 98, 97],
+    [100, 98, 97, 99, 96, 96, 96, 96, 97, 96],
+    [100, 98, 97, 96, 96, 95, 96, 97, 96, 96],
+];
+POSITION_VALUES.Tot = [
+    [9, 19, 19, 19, 14, 7, 7, 0, 0, 0],
+    [9, 24, 24, 23, 18, 0, 0, 0, 0, 0],
+    [9, 34, 32, 27, 20, 13, 7, 0, 0, 0],
+    [11, 42, 37, 29, 27, 0, 0, 0, 0, 0],
+    [13, 44, 37, 30, 29, 16, 15, 0, 0, 0],
+    [11, 42, 37, 29, 27, 0, 0, 0, 0, 0],
+    [9, 34, 32, 27, 20, 13, 7, 0, 0, 0],
+    [9, 24, 24, 23, 18, 0, 0, 0, 0, 0],
+    [9, 19, 19, 19, 14, 7, 7, 0, 0, 0],
+];
 function parseSide(isRedPiece) {
     let scale = 0;
     if (typeof isRedPiece === "boolean") {
@@ -102,7 +170,7 @@ export class Xe extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Xe);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Xe;
         }
         else {
@@ -114,7 +182,8 @@ export class Xe extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Xe[x][y];
     }
@@ -126,7 +195,7 @@ export class Ma extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Ma);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Ma;
         }
         else {
@@ -138,7 +207,8 @@ export class Ma extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Ma[x][y];
     }
@@ -150,7 +220,7 @@ export class Vua extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Vua);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Vua;
         }
         else {
@@ -167,7 +237,7 @@ export class Si extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Si);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Si;
         }
         else {
@@ -179,7 +249,8 @@ export class Si extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Si[x][y];
     }
@@ -191,7 +262,7 @@ export class Tuong extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Tuong);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Tuong;
         }
         else {
@@ -203,7 +274,8 @@ export class Tuong extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Tuong[x][y];
     }
@@ -215,7 +287,7 @@ export class Phao extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Phao);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Phao;
         }
         else {
@@ -227,7 +299,8 @@ export class Phao extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Phao[x][y];
     }
@@ -239,7 +312,7 @@ export class Tot extends Piece {
     constructor(isRedPiece, position) {
         let scale = parseSide(isRedPiece);
         super(scale, position, VALUE.Tot);
-        if (scale == 1) {
+        if (scale > 0) {
             var properties = PROPERTIES.red.Tot;
         }
         else {
@@ -251,7 +324,8 @@ export class Tot extends Piece {
     _getPositionValue() {
         let { x, y } = this.position;
         if (this.scale < 0) {
-            y = y * this.scale - 1;
+            y = PROPERTIES.yLength - 1 - y;
+            x = PROPERTIES.xLength - 1 - x;
         }
         return POSITION_VALUES.Tot[x][y];
     }
