@@ -243,7 +243,7 @@ class BoardBot extends Board {
      * Set value for nextBoards if empty 
      */
     async buildBoardLayer() {
-        if (!this.nextBoards) {
+        if (this.nextBoards.length <= 0) {
             allMoves(this).forEach((move) => {
                 this.nextBoards.push(this.movePiece(move).board);
             });
