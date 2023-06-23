@@ -70,7 +70,7 @@ export class Board {
                 // };
                 // get identifier
                 const pieceChar = refinedStartPositions[i][j]?.toString().charAt(0) // rSP is never null
-                var thisPiece: Piece | null;
+                let thisPiece: Piece | null;
                 switch (pieceChar) {
                     case undefined:
                         thisPiece = null;
@@ -124,6 +124,11 @@ export class Board {
                 if (thisPiece) this.onBoardPieces.push(thisPiece);
             }
         }
+        console.log("Your boards:");
+        console.log(this.toString());
+
+        console.log("Pieces on boards:");
+        console.log(this.onBoardPieces);
     }
 
     getPoint() {
@@ -161,9 +166,53 @@ export class Board {
         thisPiece.position.x = newX; thisPiece.position.y = newY;
 
         if (this.redToPlay === true) { this.redToPlay = false; } else { this.redToPlay = true; this.turn += 1; }
-        this.onBoardPieces.splice(this.onBoardPieces.findIndex(x => { x == captured }), 1);
+
+        if (captured) {
+            const capturedIndex = this.onBoardPieces.findIndex(x => { x == captured });
+            if (capturedIndex < 0) {
+                const template = "The captured Piece {pieceStr} was at [{x}, {y}] but wasn't exist in onBoardPieces";
+                const message = template
+                    .replace("{pieceStr}", captured.toString())
+                    .replace("{x}", newX + "")
+                    .replace("{y}", newY + "");
+                throw new Error(message);
+            }
+            this.onBoardPieces.splice(capturedIndex, 1); // NOTE: 1 causes onBoardPieces lose a piece in old implementation
+        }
         return { captured: captured, board: this };
 
+    }
+
+    /**
+     * @returns string represent piece on board as English characters for vision purpose
+     */
+    toString() {
+        let outp: string = "";
+
+        for (let x = 0; x < this.piecesPositionOnBoard.length; x++) {
+            for (let y = this.piecesPositionOnBoard[x].length; y >= 0; y--) {
+                let pieceStr = this.piecesPositionOnBoard[x][y]?.toString().charAt(0) || " ";
+                outp.concat(pieceStr);
+            }
+            outp.concat("\n");
+        }
+        return outp;
+    }
+
+    /**
+     * @returns string represent piece on board as Chinese characters for vision purpose
+     */
+    toChineseString() {
+        let outp: string = "";
+
+        for (let x = 0; x < this.piecesPositionOnBoard.length; x++) {
+            for (let y = this.piecesPositionOnBoard[x].length; y >= 0; y--) {
+                let pieceStr = this.piecesPositionOnBoard[x][y]?.text?.charAt(0) || " ";
+                outp.concat(pieceStr);
+            }
+            outp.concat("\n");
+        }
+        return outp;
     }
 }
 
