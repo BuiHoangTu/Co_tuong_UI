@@ -6,6 +6,8 @@ export type Move = {
     newPosition: PiecePosition
 }
 
+export const INFINITY = 100_000;
+
 function parseSideToPlay(isRedPlay: (boolean | string | number | undefined)): boolean {
     let isRedPlayBool: boolean = true;
 

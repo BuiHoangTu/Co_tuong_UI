@@ -1,4 +1,5 @@
 import { Xe, Ma, Vua, Si, Tuong, Phao, Tot } from "./class_Piece.js";
+export const INFINITY = 100000;
 function parseSideToPlay(isRedPlay) {
     let isRedPlayBool = true;
     switch (typeof isRedPlay) {

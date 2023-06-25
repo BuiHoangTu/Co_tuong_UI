@@ -17,15 +17,25 @@ export class ErrorTreeNotBuilt extends Error {
     }
 }
 
+/**
+ * Indicate that the game is over so your action is invalid
+ */
 export class ErrorGameOver extends Error {
     /**
-     * Indicate winner of this game;
+     * Indicate winner of this game:
      * 0 -> Draw,
      * 1 -> Red wins,
      * -1 -> Black wins.
      */
     public result: number;
 
+    /**
+     * 
+     * @param result Result of this game:
+     * 0 -> Draw,
+     * 1 -> Red wins,
+     * -1 -> Black wins.
+     */
     constructor(result: number | string) {
         super();
         let message = "The game is ended: ";
