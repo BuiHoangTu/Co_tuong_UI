@@ -392,6 +392,9 @@
   // class_Board
   // ----------------------------------------------------------------
 
+  // infinity point
+  const INFINITY = 100000;
+
   // parse side to play
   function parseSideToPlay(isRedPlay) {
     let isRedPlayBool = true;
@@ -619,7 +622,7 @@
     }
     _minMaxAlphaBeta() {
       return __awaiter(this, void 0, void 0, function* () {
-        let alphaBeta = { alpha: -100000, beta: 100000 };
+        let alphaBeta = { alpha: -INFINITY, beta: INFINITY };
         let minMaxOutput;
         if (this.botIsRed)
           minMaxOutput = this._maxAlphaBeta(this.board, alphaBeta);
@@ -630,8 +633,9 @@
     }
     _minAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
+        if (board.prevMove.length == 0) throw new ErrorNoPrevMove(board);
         if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
-          return this._quickReturn(board);
+          return { point: board.getPoint(), move: board.prevMove };
         }
         else {
           let oldFen = game.fen();
@@ -644,10 +648,27 @@
             }
             waiter = board.buildBoardLayer();
           }
-          let point = 100000;
+          let point = INFINITY;
           let move;
-          if (waiter)
-            yield waiter;
+
+          if (waiter) {
+            try {
+              yield waiter;
+            }
+            catch (errorGameOver) {
+              if (errorGameOver instanceof ErrorGameOver) {
+                move = board.prevMove;
+                switch (errorGameOver.result) {
+                  case 1: return { point: INFINITY, move: move };
+                  case 0: return { point: 0, move: move };
+                  case -1: return { point: -INFINITY, move: move };
+                }
+              }
+              else
+                throw errorGameOver;
+            }
+          }
+
           let nextBoards = board.nextBoards;
           if (nextBoards.length <= 0) this._quickReturn(board);
           // console.log(nextnextBoards);
@@ -675,8 +696,9 @@
     }
     _maxAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
+        if (board.prevMove.length == 0) throw new ErrorNoPrevMove(board);
         if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
-          return this._quickReturn(board);
+          return { point: board.getPoint(), move: board.prevMove };
         }
         else {
           let oldFen = game.fen();
@@ -689,10 +711,27 @@
             }
             waiter = board.buildBoardLayer();
           }
-          let point = -100000;
+          let point = -INFINITY;
           let move;
-          if (waiter)
-            yield waiter;
+
+          if (waiter) {
+            try {
+              yield waiter;
+            }
+            catch (errorGameOver) {
+              if (errorGameOver instanceof ErrorGameOver) {
+                move = board.prevMove;
+                switch (errorGameOver.result) {
+                  case 1: return { point: INFINITY, move: move };
+                  case 0: return { point: 0, move: move };
+                  case -1: return { point: -INFINITY, move: move };
+                }
+              }
+              else
+                throw errorGameOver;
+            }
+          }
+
           let nextBoards = board.nextBoards;
           // console.log(nextnextBoards);
           for (let i = 0; i < nextBoards.length; i++) {
@@ -760,6 +799,64 @@
   }
 
   // ----------------------------------------------------------------
+  // Error Board
+  // ----------------------------------------------------------------
+
+  class ErrorNoPrevMove extends Error {
+    constructor(board, message) {
+      if (message)
+        message = message;
+      else
+        message = "Board lack prevMove.";
+      if (board)
+        message += "The board: \n" + board.toString();
+      super(message);
+    }
+  }
+
+  class ErrorTreeNotBuilt extends Error {
+    constructor() {
+      super("Tree is not built here");
+    }
+  }
+  
+  class ErrorGameOver extends Error {
+    constructor(result) {
+      super();
+      let message = "The game is ended: ";
+      if (typeof result === "string") {
+        result = result.toLowerCase();
+        switch (result) {
+          case "r" || "red":
+            result = 1;
+            break;
+          case "b" || "black":
+            result = -1;
+            break;
+          default:
+            result = 0;
+            break;
+        }
+      }
+      switch (Math.sign(result)) {
+        case 1:
+          message += "Red wins.";
+          this.result = 1;
+          break;
+        case -1:
+          message += "Black wins.";
+          this.result = -1;
+          break;
+        default:
+          message += "Draw.";
+          this.result = 0;
+          break;
+      }
+      this.message = message;
+    }
+  }
+
+  // ----------------------------------------------------------------
   // Main function for game
   // ----------------------------------------------------------------
 
@@ -819,6 +916,7 @@
       validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
     }
 
+    if (validMoves.length == 0) throw new ErrorGameOver(0);
     return validMoves;
   }
 
