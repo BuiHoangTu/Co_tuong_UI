@@ -5,7 +5,7 @@
   let _oldFen = [];
   _oldFen.push(game.fen());
   let _oldBoard = [];
-  let _depth = 4;
+  let _depth = 3;
 
   const config = {
     boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
@@ -17,8 +17,8 @@
     onDrop: onDrop
   };
 
-  let board = Xiangqiboard("#myBoard1", config);
-  let board1 = Xiangqiboard("#myBoard2", config);
+  let BOARD = Xiangqiboard("#myBoard1", config);
+  let BOARD1 = Xiangqiboard("#myBoard2", config);
 
   // ----------------------------------------------------------------
   // class_Piece
@@ -44,17 +44,19 @@
       Phao: { text: "砲", imgStr: "r_p" },
       Tot: { text: "卒", imgStr: "r_z" },
     },
+    yLength: 10,
+    xLength: 9
   };
 
   // Start value for each type of piece
   const VALUE = {
-    Xe: 100,
-    Ma: 45,
-    Vua: 9999,
-    Si: 20,
-    Tuong: 25,
-    Phao: 50,
-    Tot: 10,
+    Xe: 0,
+    Ma: 0,
+    Vua: 0,
+    Si: 0,
+    Tuong: 0,
+    Phao: 0,
+    Tot: 0,
   };
   let POSITION_VALUES = {};
 
@@ -107,17 +109,17 @@
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-  POSITION_VALUES.Vua = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ];
+  // POSITION_VALUES.Vua = [
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  // ];
 
   POSITION_VALUES.Phao = [
     [100, 98, 97, 96, 96, 95, 96, 97, 96, 96],
@@ -215,7 +217,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Xe);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Xe;
       } else {
         var properties = PROPERTIES.black.Xe;
@@ -225,6 +227,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Xe[x][y];
     }
 
@@ -237,7 +243,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Ma);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Ma;
       } else {
         var properties = PROPERTIES.black.Ma;
@@ -247,6 +253,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Ma[x][y];
     }
 
@@ -259,7 +269,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Vua);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Vua;
       } else {
         var properties = PROPERTIES.black.Vua;
@@ -277,7 +287,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Si);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Si;
       } else {
         var properties = PROPERTIES.black.Si;
@@ -285,9 +295,14 @@
       this.text = properties.text;
       this.imgStr = properties.imgStr;
     }
+
     _getPositionValue() {
       let { x, y } = this.position;
-      return POSITION_VALUES.Si[x][y];
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
+      return POSITION_VALUES.Ma[x][y];
     }
 
     toString() {
@@ -299,7 +314,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Tuong);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Tuong;
       } else {
         var properties = PROPERTIES.black.Tuong;
@@ -309,6 +324,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Tuong[x][y];
     }
 
@@ -321,7 +340,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Phao);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Phao;
       } else {
         var properties = PROPERTIES.black.Phao;
@@ -331,6 +350,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Phao[x][y];
     }
 
@@ -343,7 +366,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Tot);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Tot;
       } else {
         var properties = PROPERTIES.black.Tot;
@@ -353,6 +376,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Tot[x][y];
     }
 
@@ -523,7 +550,7 @@
         this.onBoardPieces.findIndex((x) => {
           x == captured;
         }),
-        0
+        1
       );
       return { captured: captured, board: this };
     }
@@ -575,8 +602,8 @@
 
         // move in UI (web)
         game.move(parseMove(botMove));
-        board.position(game.fen());
-        board1.position(game.fen());
+        BOARD.position(game.fen());
+        BOARD1.position(game.fen());
 
         // move in boardBot
         this.board = this.board.movePiece(botMove).board;
@@ -601,45 +628,44 @@
         return minMaxOutput;
       });
     }
-    _minAlphaBeta(nextBoard, alphaBeta) {
+    _minAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-          if (nextBoard.prevMove.length != 0) {
-            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+          return this._quickReturn(board);
         }
         else {
           let oldFen = game.fen();
 
           let waiter;
-          if (nextBoard.nextBoards.length == 0) {
-            if (nextBoard.prevMove.length != 0) {
-              game.move(parseMove(nextBoard.prevMove));
-              board.position(game.fen());
+          if (board.nextBoards.length == 0) {
+            if (board.prevMove.length != 0) {
+              game.move(parseMove(board.prevMove));
+              BOARD.position(game.fen());
             }
-            waiter = nextBoard.buildBoardLayer();
+            waiter = board.buildBoardLayer();
           }
-          let point = -100000;
+          let point = 100000;
           let move;
           if (waiter)
             yield waiter;
-          let nextnextBoards = nextBoard.nextBoards;
+          let nextBoards = board.nextBoards;
+          if (nextBoards.length <= 0) this._quickReturn(board);
           // console.log(nextnextBoards);
-          for (let i = 0; i < nextnextBoards.length; i++) {
-            let maxValue = yield this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point <= maxValue.point) {
+          for (let i = 0; i < nextBoards.length; i++) {
+            let maxValue = yield this._maxAlphaBeta(nextBoards[i], alphaBeta);
+            if (point > maxValue.point) {
               point = maxValue.point;
-              move = nextnextBoards[i].prevMove;
+              move = nextBoards[i].prevMove;
             }
-            console.log(point, move);
-            if (point >= alphaBeta.alpha)
+            // console.log(point, move);
+            if (point < alphaBeta.alpha)
               break;
             alphaBeta.beta = alphaBeta.beta < point ? alphaBeta.beta : point;
           }
           if (move) {
             // console.log({ point: point, move: move });
             game.load(oldFen);
-            board.position(game.fen());
+            BOARD.position(game.fen());
             return { point: point, move: move };
           } else {
             move = makeRandomMove();
@@ -647,45 +673,43 @@
         }
       });
     }
-    _maxAlphaBeta(nextBoard, alphaBeta) {
+    _maxAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-          if (nextBoard.prevMove.length != 0) {
-            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+          return this._quickReturn(board);
         }
         else {
           let oldFen = game.fen();
 
           let waiter;
-          if (nextBoard.nextBoards.length == 0) {
-            if (nextBoard.prevMove.length != 0) {
-              game.move(parseMove(nextBoard.prevMove));
-              board.position(game.fen());
+          if (board.nextBoards.length == 0) {
+            if (board.prevMove.length != 0) {
+              game.move(parseMove(board.prevMove));
+              BOARD.position(game.fen());
             }
-            waiter = nextBoard.buildBoardLayer();
+            waiter = board.buildBoardLayer();
           }
           let point = -100000;
           let move;
           if (waiter)
             yield waiter;
-          let nextnextBoards = nextBoard.nextBoards;
+          let nextBoards = board.nextBoards;
           // console.log(nextnextBoards);
-          for (let i = 0; i < nextnextBoards.length; i++) {
-            let minValue = yield this._minAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point <= minValue.point) {
+          for (let i = 0; i < nextBoards.length; i++) {
+            let minValue = yield this._minAlphaBeta(nextBoards[i], alphaBeta);
+            if (point < minValue.point) {
               point = minValue.point;
-              move = nextnextBoards[i].prevMove;
+              move = nextBoards[i].prevMove;
             }
-            console.log(point, move);
-            if (point >= alphaBeta.beta)
+            // console.log(point, move);
+            if (point > alphaBeta.beta)
               break;
             alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
           }
           if (move) {
             // console.log({ point: point, move: move });
             game.load(oldFen);
-            board.position(game.fen());
+            BOARD.position(game.fen());
             return { point: point, move: move };
           } else {
             move = makeRandomMove();
@@ -693,6 +717,11 @@
           }
         }
       });
+    }
+
+    _quickReturn(board) {
+      if (board.prevMove.length != 0) return { point: board.getPoint(), move: board.prevMove }
+      else throw new ErrorNoPrevMove(board);
     }
   }
 
@@ -840,8 +869,9 @@
 
   function makeRandomMove() {
     let possibleMoves = allValidMove();
+    console.log(possibleMoves);
 
-    if (possibleMoves.length == 0) {
+    if (allValidMove().length == 0) {
       alert("Game over !!! You win !!!");
       location.reload();
     }
@@ -861,18 +891,21 @@
       to: target,
       promotion: 'q' // NOTE: always promote to a queen for example simplicity
     });
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
 
     // illegal move
     if (move === null) return 'snapback';
 
     // make move
+    console.log("running...");
     makeMove(move.from + move.to);
   }
 
   $(".undo_btn").click(function () {
     game.load(_oldFen[_oldFen.length - 1]);
-    board.position(game.fen());
-    board1.position(game.fen());
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
     _bot.setBoard(_oldBoard[_oldBoard.length - 1]);
     _oldFen.pop();
     _oldBoard.pop();
@@ -880,8 +913,8 @@
 
   $(".reset_btn").click(function () {
     game.reset();
-    board.position(game.fen());
-    board1.position(game.fen());
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
     _bot = new Bot(_depth, false, null);
   });
 })();
