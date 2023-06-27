@@ -1,4 +1,4 @@
-import { ErrorGameOver } from "./error_Board";
+import { ErrorGameOver } from "./error_Bot";
 export function allMoves(b) {
     let x = [];
     if (x.length > 0)

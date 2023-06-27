@@ -1,71 +1,28 @@
-import { Board } from "./class_Board";
+import { Board, Move } from "./class_Board";
+import { Piece } from "./class_Piece";
 
-export class ErrorNoPrevMove extends Error {
-    constructor(board?: Board, message?: string) {
-        if (message) message = message;
-        else message = "Board lack prevMove.";
+export class ErrorNoPieceOnBoard extends Error {
+    constructor(board: Board, move: Move) {
+        const template = "There is no piece on old position [{x}, {y}].";
 
-        if (board) message += "The board: \n" + board.toString();
+        const message = template
+            .replace("{x}", move.oldPosition.x + "")
+            .replace("{y}", move.oldPosition.y + "")
+            + " Board :\n" + board.toString();
 
         super(message);
+
     }
 }
 
-export class ErrorTreeNotBuilt extends Error {
-    constructor() {
-        super("Tree is not built here");
-    }
-}
+export class ErrorNoPieceOnRecord extends Error {
+    constructor(captured: Piece) {
+        const template = "The captured Piece {pieceStr} was at [{x}, {y}] but wasn't exist in onBoardPieces.";
+        const message = template
+            .replace("{pieceStr}", captured.toString())
+            .replace("{x}", captured.position.x + "")
+            .replace("{y}", captured.position.y + "");
 
-/**
- * Indicate that the game is over so your action is invalid
- */
-export class ErrorGameOver extends Error {
-    /**
-     * Indicate winner of this game:
-     * 0 -> Draw,
-     * 1 -> Red wins,
-     * -1 -> Black wins.
-     */
-    public result: number;
-
-    /**
-     * 
-     * @param result Result of this game:
-     * 0 -> Draw,
-     * 1 -> Red wins,
-     * -1 -> Black wins.
-     */
-    constructor(result: number | string) {
-        super();
-        let message = "The game is ended: ";
-
-        // parse to number
-        if (typeof result === "string") {
-            result = result.toLowerCase();
-            switch (result) {
-                case "r" || "red": result = 1; break;
-                case "b" || "black": result = -1; break;
-                default: result = 0; break;
-            }
-        }
-
-        // Add winner to message, set value for result
-        switch (Math.sign(result)) {
-            case 1:
-                message += "Red wins.";
-                this.result = 1;
-                break;
-            case -1:
-                message += "Black wins.";
-                this.result = -1;
-                break;
-            default:
-                message += "Draw.";
-                this.result = 0;
-                break;
-        }
-
-        this.message = message;
+        super(message);
     }
 }

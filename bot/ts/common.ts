@@ -1,5 +1,5 @@
 import { Board, Move } from "./class_Board";
-import { ErrorGameOver } from "./error_Board";
+import { ErrorGameOver } from "./error_Bot";
 
 /**
  * @param b board that need to find all moves

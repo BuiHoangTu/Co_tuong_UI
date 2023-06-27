@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { Board, INFINITY } from "./class_Board.js";
 import { allMoves } from "./common.js";
-import { ErrorGameOver, ErrorNoPrevMove, ErrorTreeNotBuilt } from "./error_Board.js";
+import { ErrorGameOver, ErrorNoPrevMove, ErrorTreeNotBuilt } from "./error_Bot.js";
 function boardDepth(board) {
     return board.turn * 2 + (board.redToPlay ? 0 : 1);
 }

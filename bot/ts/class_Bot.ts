@@ -2,7 +2,7 @@ import { Board, INFINITY } from "./class_Board.js"
 import { allMoves } from "./common.js"
 import type { Move } from "./class_Board.js";
 import { Piece } from "./class_Piece.js";
-import { ErrorGameOver, ErrorNoPrevMove, ErrorTreeNotBuilt } from "./error_Board.js";
+import { ErrorGameOver, ErrorNoPrevMove, ErrorTreeNotBuilt } from "./error_Bot.js";
 
 type AlphaBeta = {
     alpha: number,
