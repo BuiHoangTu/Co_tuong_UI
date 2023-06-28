@@ -531,15 +531,17 @@
     }
     _movePiece(move) {
       // js
+      if (!move.oldPosition) console.log("BRUhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
       let { x, y } = move.oldPosition;
       let thisPiece = this.piecesPositionOnBoard[x][y];
-      if (!thisPiece)
-        throw new Error(
-          "There is no piece on old position:" + move.oldPosition
-        );
+      if (!thisPiece) {
+        throw new ErrorNoPieceOnBoard(this, move);
+      }
       let { x: newX, y: newY } = move.newPosition;
       this.piecesPositionOnBoard[x][y] = null;
+
       let captured = this.piecesPositionOnBoard[newX][newY];
+
       this.piecesPositionOnBoard[newX][newY] = thisPiece;
       thisPiece.position.x = newX;
       thisPiece.position.y = newY;
@@ -549,11 +551,12 @@
         this.redToPlay = true;
         this.turn += 1;
       }
+
       this.onBoardPieces.splice(
         this.onBoardPieces.findIndex((x) => {
           x == captured;
         }),
-        1
+        0
       );
       return { captured: captured, board: this };
     }
@@ -670,7 +673,6 @@
           }
 
           let nextBoards = board.nextBoards;
-          if (nextBoards.length <= 0) this._quickReturn(board);
           // console.log(nextnextBoards);
           for (let i = 0; i < nextBoards.length; i++) {
             let maxValue = yield this._maxAlphaBeta(nextBoards[i], alphaBeta);
@@ -757,11 +759,6 @@
         }
       });
     }
-
-    _quickReturn(board) {
-      if (board.prevMove.length != 0) return { point: board.getPoint(), move: board.prevMove }
-      else throw new ErrorNoPrevMove(board);
-    }
   }
 
   // Class Board of Bot
@@ -802,24 +799,28 @@
   // Error Board
   // ----------------------------------------------------------------
 
-  class ErrorNoPrevMove extends Error {
-    constructor(board, message) {
-      if (message)
-        message = message;
-      else
-        message = "Board lack prevMove.";
-      if (board)
-        message += "The board: \n" + board.toString();
+  class ErrorNoPieceOnBoard extends Error {
+    constructor(board, move) {
+      const template = "There is no piece on old position [{x}, {y}].";
+      const message = template
+        .replace("{x}", move.oldPosition.x + "")
+        .replace("{y}", move.oldPosition.y + "")
+        + " Board :\n" + board.toString();
       super(message);
     }
   }
 
-  class ErrorTreeNotBuilt extends Error {
-    constructor() {
-      super("Tree is not built here");
+  class ErrorNoPieceOnRecord extends Error {
+    constructor(captured) {
+      const template = "The captured Piece {pieceStr} was at [{x}, {y}] but wasn't exist in onBoardPieces.";
+      const message = template
+        .replace("{pieceStr}", captured.toString())
+        .replace("{x}", captured.position.x + "")
+        .replace("{y}", captured.position.y + "");
+      super(message);
     }
   }
-  
+
   class ErrorGameOver extends Error {
     constructor(result) {
       super();
@@ -853,6 +854,24 @@
           break;
       }
       this.message = message;
+    }
+  }
+
+  class ErrorNoPrevMove extends Error {
+    constructor(board, message) {
+      if (message)
+        message = message;
+      else
+        message = "Board lack prevMove.";
+      if (board)
+        message += "The board: \n" + board.toString();
+      super(message);
+    }
+  }
+
+  class ErrorTreeNotBuilt extends Error {
+    constructor() {
+      super("Tree is not built here");
     }
   }
 
@@ -916,7 +935,10 @@
       validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
     }
 
-    if (validMoves.length == 0) throw new ErrorGameOver(0);
+    if (validMoves.length == 0) {
+      if (game.turn() == 'r') throw new ErrorGameOver(-1);
+      if (game.turn() == 'b') throw new ErrorGameOver(1);
+    }
     return validMoves;
   }
 
