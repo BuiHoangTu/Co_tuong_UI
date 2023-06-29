@@ -6,6 +6,7 @@
   _oldFen.push(game.fen());
   let _oldBoard = [];
   let _depth = 3;
+  let _turnIndex = 0;
 
   const config = {
     boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
@@ -595,32 +596,67 @@
     }
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
+        let botMove;
         this.board = this.board.movePiece(move).board;
 
-        // if black haven't any moves to move. Black lose
-        if (allValidMove().length == 0) {
-          alert("Game over !!! You win !!!");
-          location.reload();
+        if (_turnIndex == 0) {
+          console.log("Gamble move!");
+          botMove = gambleMove(parseMove(move));
+
+          // move in UI (web)
+          game.move(botMove);
+          BOARD.position(game.fen());
+          BOARD1.position(game.fen());
+
+          // move in boardBot
+          let tmp = "";
+
+          for (let l = 0; l < 4; l++) {
+            if (botMove[l] == "a") tmp += "0";
+            else if (botMove[l] == "b") tmp += "1";
+            else if (botMove[l] == "c") tmp += "2";
+            else if (botMove[l] == "d") tmp += "3";
+            else if (botMove[l] == "e") tmp += "4";
+            else if (botMove[l] == "f") tmp += "5";
+            else if (botMove[l] == "g") tmp += "6";
+            else if (botMove[l] == "h") tmp += "7";
+            else if (botMove[l] == "i") tmp += "8";
+            else tmp += botMove[l];
+          }
+
+          let viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
+          let viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
+
+          this.board = this.board.movePiece({ oldPosition: viTri1, newPosition: viTri2 }).board;
+
+          _turnIndex++;
+        } else {
+          // if black haven't any moves to move. Black lose
+          // if (allValidMove().length == 0) {
+          //   alert("Game over !!! You win !!!");
+          //   location.reload();
+          // }
+
+          console.log("main", (yield this._minMaxAlphaBeta()));
+          botMove = (yield this._minMaxAlphaBeta()).move;
+
+          // move in UI (web)
+          game.move(parseMove(botMove));
+          BOARD.position(game.fen());
+          BOARD1.position(game.fen());
+
+          // move in boardBot
+          this.board = this.board.movePiece(botMove).board;
+          _turnIndex++;
+
+          // if Red haven't any moves to move. Red lose
+          // if (allValidMove().length == 0) {
+          //   alert("Game over !!! You lose !!!");
+          //   location.reload();
+          // }
+
+          // return (yield this._minMaxAlphaBeta()).move;
         }
-
-        console.log("main", (yield this._minMaxAlphaBeta()));
-        let botMove = (yield this._minMaxAlphaBeta()).move;
-
-        // move in UI (web)
-        game.move(parseMove(botMove));
-        BOARD.position(game.fen());
-        BOARD1.position(game.fen());
-
-        // move in boardBot
-        this.board = this.board.movePiece(botMove).board;
-
-        // if Red haven't any moves to move. Red lose
-        if (allValidMove().length == 0) {
-          alert("Game over !!! You lose !!!");
-          location.reload();
-        }
-
-        // return (yield this._minMaxAlphaBeta()).move;
       });
     }
     _minMaxAlphaBeta() {
@@ -957,6 +993,8 @@
     _turn = game.turn();
     if (_turn == "b") {
 
+      console.log(move);
+
       let oppMove = "";
 
       for (let i = 0; i < 4; i++) {
@@ -1022,6 +1060,41 @@
     makeMove(move.from + move.to);
   }
 
+  function gambleMove(move) {
+    let oppMove = null;
+
+    // Pháo
+    if (move == "b2e2" || move == "h2e2") {
+      let gambit = ["h7e7", "b7e7"];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Mã
+    if (move == "h0g2" || move == "b0c2") {
+      let gambit = ["b9c7", "h9g7"];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Tốt
+    if (move == "c3c4") {
+      let gambit = ["g6g5", "h9g7", "c9e7", "b9c7"];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    if (move == "g3g4") {
+      let gambit = ["c6c5", "h9g7", "g0e2", "b9c7"];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Tượng
+    if (move == "g0e2" || move == "c9e7") {
+      let gambit = ["h7e7", "b7e7"];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    return oppMove;
+  }
+
   $(".undo_btn").click(function () {
     game.load(_oldFen[_oldFen.length - 1]);
     BOARD.position(game.fen());
@@ -1029,6 +1102,7 @@
     _bot.setBoard(_oldBoard[_oldBoard.length - 1]);
     _oldFen.pop();
     _oldBoard.pop();
+    if (_turnIndex == 1) _turnIndex = 0;
   });
 
   $(".reset_btn").click(function () {
@@ -1036,5 +1110,6 @@
     BOARD.position(game.fen());
     BOARD1.position(game.fen());
     _bot = new Bot(_depth, false, null);
+    if (_turnIndex == 1) _turnIndex = 0;
   });
 })();
