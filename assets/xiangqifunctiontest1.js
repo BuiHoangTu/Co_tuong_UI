@@ -536,8 +536,8 @@
       let { x, y } = move.oldPosition;
       let thisPiece = this.piecesPositionOnBoard[x][y];
       if (!thisPiece) {
-        throw new ErrorNoPieceOnBoard(this, move);
-      }
+        // throw new ErrorNoPieceOnBoard(this, move);
+      } else {
       let { x: newX, y: newY } = move.newPosition;
       this.piecesPositionOnBoard[x][y] = null;
 
@@ -557,9 +557,10 @@
         this.onBoardPieces.findIndex((x) => {
           x == captured;
         }),
-        0
+        1
       );
       return { captured: captured, board: this };
+      }
     }
   }
 
@@ -599,9 +600,10 @@
         let botMove;
         this.board = this.board.movePiece(move).board;
 
-        if (_turnIndex == 0) {
+        if (_turnIndex == 0 && gambleMove(parseMove(move)) != null ) {
           console.log("Gamble move!");
           botMove = gambleMove(parseMove(move));
+          console.log(botMove);
 
           // move in UI (web)
           game.move(botMove);
@@ -631,14 +633,12 @@
 
           _turnIndex++;
         } else {
-          // if black haven't any moves to move. Black lose
-          // if (allValidMove().length == 0) {
-          //   alert("Game over !!! You win !!!");
-          //   location.reload();
-          // }
+          
 
           console.log("main", (yield this._minMaxAlphaBeta()));
+          console.log(this.board);
           botMove = (yield this._minMaxAlphaBeta()).move;
+          console.log(botMove);
 
           // move in UI (web)
           game.move(parseMove(botMove));
@@ -646,14 +646,21 @@
           BOARD1.position(game.fen());
 
           // move in boardBot
+          
+          // if black haven't any moves to move. Black lose
+          if (allValidMove().length == 0) {
+            alert("Game over !!! You win !!!");
+            location.reload();
+          }
+
           this.board = this.board.movePiece(botMove).board;
           _turnIndex++;
 
           // if Red haven't any moves to move. Red lose
-          // if (allValidMove().length == 0) {
-          //   alert("Game over !!! You lose !!!");
-          //   location.reload();
-          // }
+          if (allValidMove().length == 0) {
+            alert("Game over !!! You lose !!!");
+            location.reload();
+          }
 
           // return (yield this._minMaxAlphaBeta()).move;
         }
@@ -726,8 +733,6 @@
             game.load(oldFen);
             BOARD.position(game.fen());
             return { point: point, move: move };
-          } else {
-            move = makeRandomMove();
           }
         }
       });
@@ -788,9 +793,6 @@
             game.load(oldFen);
             BOARD.position(game.fen());
             return { point: point, move: move };
-          } else {
-            move = makeRandomMove();
-            console.log(move);
           }
         }
       });
@@ -810,13 +812,13 @@
         let moves = [];
         if (this.nextBoards.length == 0) {
           allValidMove().forEach((move) => {
-            moves.push(parseMove(move));
             this.nextBoards.push(this.movePiece(move).board);
           });
         }
       });
     }
     movePiece(move) {
+
       for (let i = 0; i < this.nextBoards.length; i++) {
         if (this.nextBoards[i].prevMove === move) {
           return {
@@ -879,10 +881,12 @@
         case 1:
           message += "Red wins.";
           this.result = 1;
+          // winResult();
           break;
         case -1:
           message += "Black wins.";
           this.result = -1;
+          // loseResult();
           break;
         default:
           message += "Draw.";
@@ -1029,11 +1033,6 @@
     let possibleMoves = allValidMove();
     console.log(possibleMoves);
 
-    if (allValidMove().length == 0) {
-      alert("Game over !!! You win !!!");
-      location.reload();
-    }
-
     let randomIdx = Math.floor(Math.random() * possibleMoves.length);
 
     return possibleMoves[randomIdx]
@@ -1095,6 +1094,16 @@
     return oppMove;
   }
 
+  function winResult() {
+    alert("Game over !!! You win !!!");
+    location.reload();
+  }
+
+  function loseResult() {
+    alert("Game over !!! You lose !!!");
+    location.reload();
+  }
+
   $(".undo_btn").click(function () {
     game.load(_oldFen[_oldFen.length - 1]);
     BOARD.position(game.fen());
@@ -1110,6 +1119,6 @@
     BOARD.position(game.fen());
     BOARD1.position(game.fen());
     _bot = new Bot(_depth, false, null);
-    if (_turnIndex == 1) _turnIndex = 0;
+    _turnIndex = 0;
   });
 })();
