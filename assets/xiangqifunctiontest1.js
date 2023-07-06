@@ -1063,31 +1063,36 @@
     let oppMove = null;
 
     // Pháo
-    if (move == "b2e2" || move == "h2e2") {
-      let gambit = ["h7e7", "b7e7"];
+    if (move == 'b2e2' || move == 'h2e2') {
+      let gambit = ['h7e7', 'b7e7', 'b9c7', 'h9g7'];
       oppMove = gambit[Math.floor(Math.random() * gambit.length)];
     }
 
     // Mã
-    if (move == "h0g2" || move == "b0c2") {
-      let gambit = ["b9c7", "h9g7"];
+    if (move == 'h0g2') {
+      let gambit = ['b9c7', 'h9g7', 'h7e7', 'b7e7', 'g6g5'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    if (move == 'b0c2') {
+      let gambit = ['b9c7', 'h9g7', 'h7e7', 'b7e7', 'c6c5'];
       oppMove = gambit[Math.floor(Math.random() * gambit.length)];
     }
 
     // Tốt
-    if (move == "c3c4") {
-      let gambit = ["g6g5", "h9g7", "c9e7", "b9c7"];
+    if (move == 'c3c4') {
+      let gambit = ['g6g5', 'h9g7', 'c9e7', 'b9c7'];
       oppMove = gambit[Math.floor(Math.random() * gambit.length)];
     }
 
-    if (move == "g3g4") {
-      let gambit = ["c6c5", "h9g7", "g0e2", "b9c7"];
+    if (move == 'g3g4') {
+      let gambit = ['c6c5', 'h9g7', 'g9e7', 'b9c7'];
       oppMove = gambit[Math.floor(Math.random() * gambit.length)];
     }
 
     // Tượng
-    if (move == "g0e2" || move == "c9e7") {
-      let gambit = ["h7e7", "b7e7"];
+    if (move == 'g0e2' || move == 'c0e2') {
+      let gambit = ['h7e7', 'b7e7'];
       oppMove = gambit[Math.floor(Math.random() * gambit.length)];
     }
 
