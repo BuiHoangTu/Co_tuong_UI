@@ -536,8 +536,8 @@
       let { x, y } = move.oldPosition;
       let thisPiece = this.piecesPositionOnBoard[x][y];
       if (!thisPiece) {
-        // throw new ErrorNoPieceOnBoard(this, move);
-      } else {
+        throw new ErrorNoPieceOnBoard(this, move);
+      }
       let { x: newX, y: newY } = move.newPosition;
       this.piecesPositionOnBoard[x][y] = null;
 
@@ -560,7 +560,6 @@
         1
       );
       return { captured: captured, board: this };
-      }
     }
   }
 
@@ -597,13 +596,16 @@
     }
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
+
+        let start_Timer = Date.now();
+
         let botMove;
         this.board = this.board.movePiece(move).board;
 
         if (_turnIndex == 0 && gambleMove(parseMove(move)) != null ) {
-          console.log("Gamble move!");
+          console.log("  - Status : Gamble move!");
           botMove = gambleMove(parseMove(move));
-          console.log(botMove);
+          console.log("  Bot move : " + botMove[0] + botMove[1] + "->" + botMove[2] + botMove[3]);
 
           // move in UI (web)
           game.move(botMove);
@@ -633,11 +635,14 @@
 
           _turnIndex++;
         } else {
-          
 
-          console.log("main", (yield this._minMaxAlphaBeta()));
-          console.log(this.board);
+          // console.log("main", (yield this._minMaxAlphaBeta()));
+          // console.log(this.board);
+
+          console.log("  - Status : AI bot move!");
+
           botMove = (yield this._minMaxAlphaBeta()).move;
+          console.log("  Bot move : ");
           console.log(botMove);
 
           // move in UI (web)
@@ -664,6 +669,10 @@
 
           // return (yield this._minMaxAlphaBeta()).move;
         }
+
+        let end_Timer = ( Date.now() - start_Timer ) / 1000;
+        console.log("Move time : " + end_Timer + "s");
+        console.log("-------------------------------")
       });
     }
     _minMaxAlphaBeta() {
@@ -881,12 +890,12 @@
         case 1:
           message += "Red wins.";
           this.result = 1;
-          // winResult();
+          winResult();
           break;
         case -1:
           message += "Black wins.";
           this.result = -1;
-          // loseResult();
+          loseResult();
           break;
         default:
           message += "Draw.";
@@ -997,7 +1006,7 @@
     _turn = game.turn();
     if (_turn == "b") {
 
-      console.log(move);
+      console.log("  My move : " + move[0] + move[1] + "->" + move[2] + move[3]);
 
       let oppMove = "";
 
