@@ -5,7 +5,8 @@
   let _oldFen = [];
   _oldFen.push(game.fen());
   let _oldBoard = [];
-  let _depth = 4;
+  let _depth = 3;
+  let _turnIndex = 0;
 
   const config = {
     boardTheme: "./docs/img/xiangqiboards/wikimedia/xiangqiboard2.svg",
@@ -17,8 +18,8 @@
     onDrop: onDrop
   };
 
-  let board = Xiangqiboard("#myBoard1", config);
-  let board1 = Xiangqiboard("#myBoard2", config);
+  let BOARD = Xiangqiboard("#myBoard1", config);
+  let BOARD1 = Xiangqiboard("#myBoard2", config);
 
   // ----------------------------------------------------------------
   // class_Piece
@@ -44,17 +45,19 @@
       Phao: { text: "砲", imgStr: "r_p" },
       Tot: { text: "卒", imgStr: "r_z" },
     },
+    yLength: 10,
+    xLength: 9
   };
 
   // Start value for each type of piece
   const VALUE = {
-    Xe: 100,
-    Ma: 45,
-    Vua: 9999,
-    Si: 20,
-    Tuong: 25,
-    Phao: 50,
-    Tot: 10,
+    Xe: 0,
+    Ma: 0,
+    Vua: 0,
+    Si: 0,
+    Tuong: 0,
+    Phao: 0,
+    Tot: 0,
   };
   let POSITION_VALUES = {};
 
@@ -107,17 +110,17 @@
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-  POSITION_VALUES.Vua = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ];
+  // POSITION_VALUES.Vua = [
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [8888, 8888, 8888, 0, 0, 0, 0, 8888, 8888, 8888],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  // ];
 
   POSITION_VALUES.Phao = [
     [100, 98, 97, 96, 96, 95, 96, 97, 96, 96],
@@ -215,7 +218,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Xe);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Xe;
       } else {
         var properties = PROPERTIES.black.Xe;
@@ -225,6 +228,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Xe[x][y];
     }
 
@@ -237,7 +244,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Ma);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Ma;
       } else {
         var properties = PROPERTIES.black.Ma;
@@ -247,6 +254,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Ma[x][y];
     }
 
@@ -259,7 +270,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Vua);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Vua;
       } else {
         var properties = PROPERTIES.black.Vua;
@@ -277,7 +288,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Si);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Si;
       } else {
         var properties = PROPERTIES.black.Si;
@@ -285,9 +296,14 @@
       this.text = properties.text;
       this.imgStr = properties.imgStr;
     }
+
     _getPositionValue() {
       let { x, y } = this.position;
-      return POSITION_VALUES.Si[x][y];
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
+      return POSITION_VALUES.Ma[x][y];
     }
 
     toString() {
@@ -299,7 +315,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Tuong);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Tuong;
       } else {
         var properties = PROPERTIES.black.Tuong;
@@ -309,6 +325,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Tuong[x][y];
     }
 
@@ -321,7 +341,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Phao);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Phao;
       } else {
         var properties = PROPERTIES.black.Phao;
@@ -331,6 +351,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Phao[x][y];
     }
 
@@ -343,7 +367,7 @@
     constructor(isRedPiece, position) {
       let scale = parseSide(isRedPiece);
       super(scale, position, VALUE.Tot);
-      if (scale == 1) {
+      if (scale > 0) {
         var properties = PROPERTIES.red.Tot;
       } else {
         var properties = PROPERTIES.black.Tot;
@@ -353,6 +377,10 @@
     }
     _getPositionValue() {
       let { x, y } = this.position;
+      if (this.scale < 0) {
+        y = PROPERTIES.yLength - 1 - y; // length - 1 - y
+        x = PROPERTIES.xLength - 1 - x;
+      }
       return POSITION_VALUES.Tot[x][y];
     }
 
@@ -364,6 +392,9 @@
   // ----------------------------------------------------------------
   // class_Board
   // ----------------------------------------------------------------
+
+  // infinity point
+  const INFINITY = 100000;
 
   // parse side to play
   function parseSideToPlay(isRedPlay) {
@@ -501,15 +532,17 @@
     }
     _movePiece(move) {
       // js
+      if (!move.oldPosition) console.log("BRUhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
       let { x, y } = move.oldPosition;
       let thisPiece = this.piecesPositionOnBoard[x][y];
-      if (!thisPiece)
-        throw new Error(
-          "There is no piece on old position:" + move.oldPosition
-        );
+      if (!thisPiece) {
+        throw new ErrorNoPieceOnBoard(this, move);
+      }
       let { x: newX, y: newY } = move.newPosition;
       this.piecesPositionOnBoard[x][y] = null;
+
       let captured = this.piecesPositionOnBoard[newX][newY];
+
       this.piecesPositionOnBoard[newX][newY] = thisPiece;
       thisPiece.position.x = newX;
       thisPiece.position.y = newY;
@@ -519,11 +552,12 @@
         this.redToPlay = true;
         this.turn += 1;
       }
+
       this.onBoardPieces.splice(
         this.onBoardPieces.findIndex((x) => {
           x == captured;
         }),
-        0
+        1
       );
       return { captured: captured, board: this };
     }
@@ -562,37 +596,88 @@
     }
     async opponentMakeMove(move) {
       return __awaiter(this, void 0, void 0, function* () {
+
+        let start_Timer = Date.now();
+
+        let botMove;
         this.board = this.board.movePiece(move).board;
 
-        // if black haven't any moves to move. Black lose
-        if (allValidMove().length == 0) {
-          alert("Game over !!! You win !!!");
-          location.reload();
+        if (_turnIndex == 0 && gambleMove(parseMove(move)) != null ) {
+          console.log("  - Status : Gamble move!");
+          botMove = gambleMove(parseMove(move));
+          console.log("  Bot move : " + botMove[0] + botMove[1] + "->" + botMove[2] + botMove[3]);
+
+          // move in UI (web)
+          game.move(botMove);
+          BOARD.position(game.fen());
+          BOARD1.position(game.fen());
+
+          // move in boardBot
+          let tmp = "";
+
+          for (let l = 0; l < 4; l++) {
+            if (botMove[l] == "a") tmp += "0";
+            else if (botMove[l] == "b") tmp += "1";
+            else if (botMove[l] == "c") tmp += "2";
+            else if (botMove[l] == "d") tmp += "3";
+            else if (botMove[l] == "e") tmp += "4";
+            else if (botMove[l] == "f") tmp += "5";
+            else if (botMove[l] == "g") tmp += "6";
+            else if (botMove[l] == "h") tmp += "7";
+            else if (botMove[l] == "i") tmp += "8";
+            else tmp += botMove[l];
+          }
+
+          let viTri1 = { x: Number(tmp[0]), y: Number(tmp[1]) };
+          let viTri2 = { x: Number(tmp[2]), y: Number(tmp[3]) };
+
+          this.board = this.board.movePiece({ oldPosition: viTri1, newPosition: viTri2 }).board;
+
+          _turnIndex++;
+        } else {
+
+          // console.log("main", (yield this._minMaxAlphaBeta()));
+          // console.log(this.board);
+
+          console.log("  - Status : AI bot move!");
+
+          botMove = (yield this._minMaxAlphaBeta()).move;
+          console.log("  Bot move : ");
+          console.log(botMove);
+
+          // move in UI (web)
+          game.move(parseMove(botMove));
+          BOARD.position(game.fen());
+          BOARD1.position(game.fen());
+
+          // move in boardBot
+          
+          // if black haven't any moves to move. Black lose
+          if (allValidMove().length == 0) {
+            alert("Game over !!! You win !!!");
+            location.reload();
+          }
+
+          this.board = this.board.movePiece(botMove).board;
+          _turnIndex++;
+
+          // if Red haven't any moves to move. Red lose
+          if (allValidMove().length == 0) {
+            alert("Game over !!! You lose !!!");
+            location.reload();
+          }
+
+          // return (yield this._minMaxAlphaBeta()).move;
         }
 
-        console.log("main", (yield this._minMaxAlphaBeta()));
-        let botMove = (yield this._minMaxAlphaBeta()).move;
-
-        // move in UI (web)
-        game.move(parseMove(botMove));
-        board.position(game.fen());
-        board1.position(game.fen());
-
-        // move in boardBot
-        this.board = this.board.movePiece(botMove).board;
-
-        // if Red haven't any moves to move. Red lose
-        if (allValidMove().length == 0) {
-          alert("Game over !!! You lose !!!");
-          location.reload();
-        }
-
-        // return (yield this._minMaxAlphaBeta()).move;
+        let end_Timer = ( Date.now() - start_Timer ) / 1000;
+        console.log("Move time : " + end_Timer + "s");
+        console.log("-------------------------------")
       });
     }
     _minMaxAlphaBeta() {
       return __awaiter(this, void 0, void 0, function* () {
-        let alphaBeta = { alpha: -100000, beta: 100000 };
+        let alphaBeta = { alpha: -INFINITY, beta: INFINITY };
         let minMaxOutput;
         if (this.botIsRed)
           minMaxOutput = this._maxAlphaBeta(this.board, alphaBeta);
@@ -601,95 +686,122 @@
         return minMaxOutput;
       });
     }
-    _minAlphaBeta(nextBoard, alphaBeta) {
+    _minAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-          if (nextBoard.prevMove.length != 0) {
-            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
+        if (board.prevMove.length == 0) throw new ErrorNoPrevMove(board);
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+          return { point: board.getPoint(), move: board.prevMove };
         }
         else {
           let oldFen = game.fen();
 
           let waiter;
-          if (nextBoard.nextBoards.length == 0) {
-            if (nextBoard.prevMove.length != 0) {
-              game.move(parseMove(nextBoard.prevMove));
-              board.position(game.fen());
+          if (board.nextBoards.length == 0) {
+            if (board.prevMove.length != 0) {
+              game.move(parseMove(board.prevMove));
+              BOARD.position(game.fen());
             }
-            waiter = nextBoard.buildBoardLayer();
+            waiter = board.buildBoardLayer();
           }
-          let point = -100000;
+          let point = INFINITY;
           let move;
-          if (waiter)
-            yield waiter;
-          let nextnextBoards = nextBoard.nextBoards;
-          // console.log(nextnextBoards);
-          for (let i = 0; i < nextnextBoards.length; i++) {
-            let maxValue = yield this._maxAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point <= maxValue.point) {
-              point = maxValue.point;
-              move = nextnextBoards[i].prevMove;
+
+          if (waiter) {
+            try {
+              yield waiter;
             }
-            console.log(point, move);
-            if (point >= alphaBeta.alpha)
+            catch (errorGameOver) {
+              if (errorGameOver instanceof ErrorGameOver) {
+                move = board.prevMove;
+                switch (errorGameOver.result) {
+                  case 1: return { point: INFINITY, move: move };
+                  case 0: return { point: 0, move: move };
+                  case -1: return { point: -INFINITY, move: move };
+                }
+              }
+              else
+                throw errorGameOver;
+            }
+          }
+
+          let nextBoards = board.nextBoards;
+          // console.log(nextnextBoards);
+          for (let i = 0; i < nextBoards.length; i++) {
+            let maxValue = yield this._maxAlphaBeta(nextBoards[i], alphaBeta);
+            if (point > maxValue.point) {
+              point = maxValue.point;
+              move = nextBoards[i].prevMove;
+            }
+            // console.log(point, move);
+            if (point < alphaBeta.alpha)
               break;
             alphaBeta.beta = alphaBeta.beta < point ? alphaBeta.beta : point;
           }
           if (move) {
             // console.log({ point: point, move: move });
             game.load(oldFen);
-            board.position(game.fen());
+            BOARD.position(game.fen());
             return { point: point, move: move };
-          } else {
-            move = makeRandomMove();
           }
         }
       });
     }
-    _maxAlphaBeta(nextBoard, alphaBeta) {
+    _maxAlphaBeta(board, alphaBeta) {
       return __awaiter(this, void 0, void 0, function* () {
-        if (boardDepth(nextBoard) - boardDepth(this.board) >= this.searchDepth) {
-          if (nextBoard.prevMove.length != 0) {
-            return { point: nextBoard.getPoint(), move: nextBoard.prevMove };
-          } else throw new Error("This board `" + nextBoard + "` lack prevMove");
+        if (board.prevMove.length == 0) throw new ErrorNoPrevMove(board);
+        if (boardDepth(board) - boardDepth(this.board) >= this.searchDepth) {
+          return { point: board.getPoint(), move: board.prevMove };
         }
         else {
           let oldFen = game.fen();
 
           let waiter;
-          if (nextBoard.nextBoards.length == 0) {
-            if (nextBoard.prevMove.length != 0) {
-              game.move(parseMove(nextBoard.prevMove));
-              board.position(game.fen());
+          if (board.nextBoards.length == 0) {
+            if (board.prevMove.length != 0) {
+              game.move(parseMove(board.prevMove));
+              BOARD.position(game.fen());
             }
-            waiter = nextBoard.buildBoardLayer();
+            waiter = board.buildBoardLayer();
           }
-          let point = -100000;
+          let point = -INFINITY;
           let move;
-          if (waiter)
-            yield waiter;
-          let nextnextBoards = nextBoard.nextBoards;
-          // console.log(nextnextBoards);
-          for (let i = 0; i < nextnextBoards.length; i++) {
-            let minValue = yield this._minAlphaBeta(nextnextBoards[i], alphaBeta);
-            if (point <= minValue.point) {
-              point = minValue.point;
-              move = nextnextBoards[i].prevMove;
+
+          if (waiter) {
+            try {
+              yield waiter;
             }
-            console.log(point, move);
-            if (point >= alphaBeta.beta)
+            catch (errorGameOver) {
+              if (errorGameOver instanceof ErrorGameOver) {
+                move = board.prevMove;
+                switch (errorGameOver.result) {
+                  case 1: return { point: INFINITY, move: move };
+                  case 0: return { point: 0, move: move };
+                  case -1: return { point: -INFINITY, move: move };
+                }
+              }
+              else
+                throw errorGameOver;
+            }
+          }
+
+          let nextBoards = board.nextBoards;
+          // console.log(nextnextBoards);
+          for (let i = 0; i < nextBoards.length; i++) {
+            let minValue = yield this._minAlphaBeta(nextBoards[i], alphaBeta);
+            if (point < minValue.point) {
+              point = minValue.point;
+              move = nextBoards[i].prevMove;
+            }
+            // console.log(point, move);
+            if (point > alphaBeta.beta)
               break;
             alphaBeta.alpha = alphaBeta.beta > point ? alphaBeta.beta : point;
           }
           if (move) {
             // console.log({ point: point, move: move });
             game.load(oldFen);
-            board.position(game.fen());
+            BOARD.position(game.fen());
             return { point: point, move: move };
-          } else {
-            move = makeRandomMove();
-            console.log(move);
           }
         }
       });
@@ -709,13 +821,13 @@
         let moves = [];
         if (this.nextBoards.length == 0) {
           allValidMove().forEach((move) => {
-            moves.push(parseMove(move));
             this.nextBoards.push(this.movePiece(move).board);
           });
         }
       });
     }
     movePiece(move) {
+
       for (let i = 0; i < this.nextBoards.length; i++) {
         if (this.nextBoards[i].prevMove === move) {
           return {
@@ -727,6 +839,88 @@
       let b = new BoardBot(this.piecesPositionOnBoard, move, this.prevCaptured, this.redToPlay);
       b.turn = this.turn;
       return b._movePiece(move);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Error Board
+  // ----------------------------------------------------------------
+
+  class ErrorNoPieceOnBoard extends Error {
+    constructor(board, move) {
+      const template = "There is no piece on old position [{x}, {y}].";
+      const message = template
+        .replace("{x}", move.oldPosition.x + "")
+        .replace("{y}", move.oldPosition.y + "")
+        + " Board :\n" + board.toString();
+      super(message);
+    }
+  }
+
+  class ErrorNoPieceOnRecord extends Error {
+    constructor(captured) {
+      const template = "The captured Piece {pieceStr} was at [{x}, {y}] but wasn't exist in onBoardPieces.";
+      const message = template
+        .replace("{pieceStr}", captured.toString())
+        .replace("{x}", captured.position.x + "")
+        .replace("{y}", captured.position.y + "");
+      super(message);
+    }
+  }
+
+  class ErrorGameOver extends Error {
+    constructor(result) {
+      super();
+      let message = "The game is ended: ";
+      if (typeof result === "string") {
+        result = result.toLowerCase();
+        switch (result) {
+          case "r" || "red":
+            result = 1;
+            break;
+          case "b" || "black":
+            result = -1;
+            break;
+          default:
+            result = 0;
+            break;
+        }
+      }
+      switch (Math.sign(result)) {
+        case 1:
+          message += "Red wins.";
+          this.result = 1;
+          winResult();
+          break;
+        case -1:
+          message += "Black wins.";
+          this.result = -1;
+          loseResult();
+          break;
+        default:
+          message += "Draw.";
+          this.result = 0;
+          break;
+      }
+      this.message = message;
+    }
+  }
+
+  class ErrorNoPrevMove extends Error {
+    constructor(board, message) {
+      if (message)
+        message = message;
+      else
+        message = "Board lack prevMove.";
+      if (board)
+        message += "The board: \n" + board.toString();
+      super(message);
+    }
+  }
+
+  class ErrorTreeNotBuilt extends Error {
+    constructor() {
+      super("Tree is not built here");
     }
   }
 
@@ -790,6 +984,10 @@
       validMoves.push({ oldPosition: viTri1, newPosition: viTri2 });
     }
 
+    if (validMoves.length == 0) {
+      if (game.turn() == 'r') throw new ErrorGameOver(-1);
+      if (game.turn() == 'b') throw new ErrorGameOver(1);
+    }
     return validMoves;
   }
 
@@ -807,6 +1005,8 @@
   function makeMove(move) {
     _turn = game.turn();
     if (_turn == "b") {
+
+      console.log("  My move : " + move[0] + move[1] + "->" + move[2] + move[3]);
 
       let oppMove = "";
 
@@ -840,11 +1040,7 @@
 
   function makeRandomMove() {
     let possibleMoves = allValidMove();
-
-    if (possibleMoves.length == 0) {
-      alert("Game over !!! You win !!!");
-      location.reload();
-    }
+    console.log(possibleMoves);
 
     let randomIdx = Math.floor(Math.random() * possibleMoves.length);
 
@@ -861,27 +1057,82 @@
       to: target,
       promotion: 'q' // NOTE: always promote to a queen for example simplicity
     });
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
 
     // illegal move
     if (move === null) return 'snapback';
 
     // make move
+    console.log("running...");
     makeMove(move.from + move.to);
+  }
+
+  function gambleMove(move) {
+    let oppMove = null;
+
+    // Pháo
+    if (move == 'b2e2' || move == 'h2e2') {
+      let gambit = ['h7e7', 'b7e7', 'b9c7', 'h9g7'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Mã
+    if (move == 'h0g2') {
+      let gambit = ['b9c7', 'h9g7', 'h7e7', 'b7e7', 'g6g5'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    if (move == 'b0c2') {
+      let gambit = ['b9c7', 'h9g7', 'h7e7', 'b7e7', 'c6c5'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Tốt
+    if (move == 'c3c4') {
+      let gambit = ['g6g5', 'h9g7', 'c9e7', 'b9c7'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    if (move == 'g3g4') {
+      let gambit = ['c6c5', 'h9g7', 'g9e7', 'b9c7'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    // Tượng
+    if (move == 'g0e2' || move == 'c0e2') {
+      let gambit = ['h7e7', 'b7e7'];
+      oppMove = gambit[Math.floor(Math.random() * gambit.length)];
+    }
+
+    return oppMove;
+  }
+
+  function winResult() {
+    alert("Game over !!! You win !!!");
+    location.reload();
+  }
+
+  function loseResult() {
+    alert("Game over !!! You lose !!!");
+    location.reload();
   }
 
   $(".undo_btn").click(function () {
     game.load(_oldFen[_oldFen.length - 1]);
-    board.position(game.fen());
-    board1.position(game.fen());
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
     _bot.setBoard(_oldBoard[_oldBoard.length - 1]);
     _oldFen.pop();
     _oldBoard.pop();
+    if (_turnIndex == 1) _turnIndex = 0;
   });
 
   $(".reset_btn").click(function () {
     game.reset();
-    board.position(game.fen());
-    board1.position(game.fen());
+    BOARD.position(game.fen());
+    BOARD1.position(game.fen());
     _bot = new Bot(_depth, false, null);
+    _turnIndex = 0;
   });
 })();
